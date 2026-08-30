@@ -165,6 +165,18 @@
     .btn-fac{background:var(--blue)!important;box-shadow:0 4px 12px rgba(29,111,184,.35)!important;}
     .btn-haz{background:#d62828!important;box-shadow:0 4px 12px rgba(214,40,40,.35)!important;}
 
+    /* ໝຸດ "ກຳລັງຈະປັກ" (draft) — ຕ່າງຈາກໝຸດຈິງ: ວົງກະພິບ ເສັ້ນຂີດ */
+    .pick-pin-inner{
+      width:26px;height:26px;border-radius:50%;background:rgba(233,30,99,.25);
+      border:3px dashed #e91e63;box-shadow:0 0 0 0 rgba(233,30,99,.55);
+      animation:pickPulse 1.2s infinite;
+    }
+    @keyframes pickPulse{
+      0%{box-shadow:0 0 0 0 rgba(233,30,99,.55);}
+      70%{box-shadow:0 0 0 16px rgba(233,30,99,0);}
+      100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}
+    }
+
     /* Filter bar (chips) */
     .filterbar{
       position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1001;
@@ -349,10 +361,10 @@
      2) ຂໍ້ມູນປະເພດຄວາມຊ່ວຍເຫຼືອ (ສີ + ຊື່ພາສາລາວ)
      ============================================================ */
   const HELP_TYPES = {
-    evacuate: { label: "ອົບພະຍົບດ່ວນ",       color: "#e63946" },
-    food:     { label: "ອາຫານ / ນ້ຳດື່ມ",     color: "#f4a261" },
-    medicine: { label: "ຢາ / ເວຊະພັນ",        color: "#2a9d8f" },
-    other:    { label: "ອື່ນໆ",               color: "#6c757d" }
+    evacuate: { label: "ອົບພະຍົບດ່ວນ",       emoji: "🆘", color: "#e63946" },
+    food:     { label: "ອາຫານ / ນ້ຳດື່ມ",     emoji: "🍚", color: "#f4a261" },
+    medicine: { label: "ຢາ / ເວຊະພັນ",        emoji: "💊", color: "#2a9d8f" },
+    other:    { label: "ອື່ນໆ",               emoji: "📌", color: "#6c757d" }
   };
 
   /* ປະເພດຈຸດບໍລິການ (emoji + ສີ + ຊື່ພາສາລາວ) */
@@ -390,17 +402,27 @@
   let pickMarker = null;                             // ໝຸດຊົ່ວຄາວ
 
   /* ສ້າງໄອຄອນໝຸດສີ (ໃຊ້ divIcon) */
-  function makeIcon(color, done=false){
-    const check = done
-      ? `<div style="position:absolute;top:-3px;left:3px;transform:rotate(45deg);color:#fff;font-size:13px;font-weight:900;line-height:1;">✓</div>`
+  function makeIcon(color, emoji, count, done=false){
+    const c = done ? '#8a94a6' : color;
+    const head = done
+      ? `<span style="color:#fff;font-weight:900;font-size:17px;">✓</span>`
+      : `<span style="font-size:18px;line-height:1;">${emoji || ''}</span>`;
+    // ປ້າຍຕົວເລກຈຳນວນຄົນ (ມູມຂວາເທິງ)
+    const badge = (!done && count != null && count !== '' && Number(count) > 0)
+      ? `<div style="position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 4px;
+          background:#111;color:#fff;border:2px solid #fff;border-radius:10px;font-size:11px;font-weight:800;
+          display:flex;align-items:center;justify-content:center;line-height:1;">${count}</div>`
       : '';
     return L.divIcon({
       className: 'custom-pin',
-      html: `<div style="position:relative;
-        background:${color};width:20px;height:20px;border-radius:50% 50% 50% 0;
-        transform:rotate(-45deg);border:2.5px solid #fff;
-        box-shadow:0 2px 6px rgba(0,0,0,.4);opacity:${done?0.78:1};">${check}</div>`,
-      iconSize: [20,20], iconAnchor: [10,20], popupAnchor:[0,-20]
+      html: `<div style="position:relative;width:36px;height:48px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));">
+        <div style="width:36px;height:36px;border-radius:50%;background:${c};border:3px solid #fff;
+          display:flex;align-items:center;justify-content:center;">${head}</div>
+        <div style="position:absolute;left:50%;top:30px;transform:translateX(-50%);width:0;height:0;
+          border-left:9px solid transparent;border-right:9px solid transparent;border-top:14px solid ${c};"></div>
+        ${badge}
+      </div>`,
+      iconSize: [36,48], iconAnchor: [18,48], popupAnchor:[0,-46]
     });
   }
 
@@ -408,10 +430,10 @@
   function makeFacilityIcon(emoji, color){
     return L.divIcon({
       className: 'facility-pin',
-      html: `<div style="background:${color};width:30px;height:30px;border-radius:9px;
-        border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);
-        display:flex;align-items:center;justify-content:center;font-size:16px;">${emoji}</div>`,
-      iconSize: [30,30], iconAnchor: [15,15], popupAnchor:[0,-16]
+      html: `<div style="background:${color};width:36px;height:36px;border-radius:10px;
+        border:3px solid #fff;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));
+        display:flex;align-items:center;justify-content:center;font-size:19px;">${emoji}</div>`,
+      iconSize: [36,36], iconAnchor: [18,18], popupAnchor:[0,-19]
     });
   }
 
@@ -419,25 +441,20 @@
   function makeHazardIcon(emoji, color){
     return L.divIcon({
       className: 'hazard-pin',
-      html: `<div style="background:${color};width:30px;height:30px;border-radius:50%;
-        border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);
-        display:flex;align-items:center;justify-content:center;font-size:16px;">${emoji}</div>`,
-      iconSize: [30,30], iconAnchor: [15,15], popupAnchor:[0,-16]
+      html: `<div style="background:${color};width:36px;height:36px;border-radius:50%;
+        border:3px solid #fff;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));
+        display:flex;align-items:center;justify-content:center;font-size:19px;">${emoji}</div>`,
+      iconSize: [36,36], iconAnchor: [18,18], popupAnchor:[0,-19]
     });
   }
 
-  /* ໄອຄອນ/ສີ ຕາມປະເພດທີ່ເລືອກຢູ່ໃນຟອມປັດຈຸບັນ */
-  function currentPickIcon(){
-    if (currentCat === 'facility'){
-      const f = FACILITY_TYPES[document.getElementById('facType').value];
-      return makeFacilityIcon(f.emoji, f.color);
-    }
-    if (currentCat === 'hazard'){
-      const h = HAZARD_TYPES[document.getElementById('hazType').value];
-      return makeHazardIcon(h.emoji, h.color);
-    }
-    const t = HELP_TYPES[document.getElementById('helpType').value];
-    return makeIcon(t.color);
+  /* ໝຸດ "ກຳລັງຈະປັກ" (draft) — ຮູບແບບຕ່າງຈາກໝຸດຈິງທັງໝົດ */
+  function makePickIcon(){
+    return L.divIcon({
+      className: 'pick-pin',
+      html: `<div class="pick-pin-inner"></div>`,
+      iconSize: [26,26], iconAnchor: [13,13], popupAnchor: [0,-14]
+    });
   }
 
   /* ============================================================
@@ -448,17 +465,14 @@
   function setSelected(lat, lng){
     selectedLatLng = { lat, lng };
     if (pickMarker) map.removeLayer(pickMarker);
-    pickMarker = L.marker([lat, lng], { icon: currentPickIcon(), zIndexOffset: 1000 }).addTo(map);
-    pickMarker.bindPopup("📍 ຈຸດທີ່ເລືອກໄວ້").openPopup();
+    pickMarker = L.marker([lat, lng], { icon: makePickIcon(), zIndexOffset: 2000 }).addTo(map);
+    pickMarker.bindPopup("📍 ຈຸດໃໝ່ ທີ່ກຳລັງຈະແຈ້ງ (ຍັງບໍ່ໄດ້ສົ່ງ)").openPopup();
     document.getElementById('coordBox').innerHTML =
       `📍 ຈຸດທີ່ເລືອກ: <b>${lat.toFixed(5)}, ${lng.toFixed(5)}</b>`;
   }
 
-  /* ອັບເດດສີ/ໄອຄອນຂອງໝຸດຊົ່ວຄາວ ເມື່ອປ່ຽນປະເພດ */
-  function refreshPickIcon(){ if (pickMarker) pickMarker.setIcon(currentPickIcon()); }
-  document.getElementById('helpType').addEventListener('change', refreshPickIcon);
-  document.getElementById('facType').addEventListener('change', refreshPickIcon);
-  document.getElementById('hazType').addEventListener('change', refreshPickIcon);
+  /* ໝຸດ draft ຮູບແບບຄົງທີ່ (ບໍ່ຂຶ້ນກັບປະເພດ) — ບໍ່ຕ້ອງ refresh ຕາມປະເພດ */
+  function refreshPickIcon(){ /* draft icon ຄົງທີ່ */ }
 
   /* ============================================================
      4.1) ສະຫຼັບໂໝດຟອມ: ຄຳຮ້ອງ  <->  ຈຸດບໍລິການ
@@ -691,7 +705,7 @@
     const t = HELP_TYPES[r.help_type] || HELP_TYPES.other;
     const helped = (r.status === 'helped');
     const color = helped ? '#8a94a6' : t.color;      // ຊ່ວຍແລ້ວ = ສີເທົາ
-    const marker = L.marker([r.lat, r.lng], { icon: makeIcon(color, helped) });
+    const marker = L.marker([r.lat, r.lng], { icon: makeIcon(t.color, t.emoji, r.people_count || 0, helped) });
     const time = formatTime(r.created_at);
     const phoneHtml = r.phone
       ? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
@@ -703,9 +717,10 @@
     let statusHtml = "";
     if (helped) {
       statusHtml = `<div class="popup-status done">✅ ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ</div>`;
-    } else if (r.id && isAdmin) {
-      // ສະແດງປຸ່ມ "ຊ່ວຍແລ້ວ" ສະເພາະ admin ທີ່ login ແລ້ວ (ອັບເດດຕ້ອງມີສິດ)
-      statusHtml = `<button class="popup-btn" onclick="markHelped('${r.id}', this)">✅ ໝາຍວ່າຊ່ວຍເຫຼືອແລ້ວ</button>`;
+    } else if (r.id) {
+      // ໃຫ້ທຸກຄົນກົດໄດ້ (ຜູ້ໄປຊ່ວຍ ຫຼື ຜູ້ແຈ້ງເອງ)
+      statusHtml = `<button class="popup-btn" onclick="markHelped('${r.id}', this)">✅ ໄດ້ຊ່ວຍເຫຼືອແລ້ວ</button>
+        <div style="font-size:10.5px;color:#888;text-align:center;margin-top:3px;">ກົດໄດ້ໂດຍ ຜູ້ໄປຊ່ວຍ ຫຼື ຜູ້ແຈ້ງເອງ</div>`;
     }
     const navHtml = navButton(r.lat, r.lng);
 

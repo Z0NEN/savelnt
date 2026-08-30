@@ -50,19 +50,24 @@ create policy "public can insert requests"
   to anon, authenticated
   with check (true);
 
--- ==== ຄວາມປອດໄພ (Supabase Auth) ====
--- UPDATE ແລະ DELETE ອະນຸຍາດ "ສະເພາະຄົນທີ່ login ແລ້ວ (authenticated)" = admin ເທົ່ານັ້ນ
--- (ລົບ policy ເກົ່າທີ່ເປີດໃຫ້ anon ອອກ)
+-- ==== ຄວາມປອດໄພ ====
+-- UPDATE: ໃຫ້ "ທຸກຄົນ" ໝາຍ "ໄດ້ຊ່ວຍເຫຼືອແລ້ວ" ໄດ້ (ຜູ້ໄປຊ່ວຍ ຫຼື ຜູ້ແຈ້ງເອງ)
+--         ແຕ່ຈຳກັດໃຫ້ anon ແກ້ໄດ້ "ສະເພາະ column status" ເທົ່ານັ້ນ (ບໍ່ໃຫ້ແກ້ຊື່/ພິກັດ/ລາຍລະອຽດ)
+-- DELETE: ສະເພาະ admin ທີ່ login ແລ້ວ
 drop policy if exists "public can update requests" on public.requests;
 drop policy if exists "public can delete requests" on public.requests;
-
--- ອະນຸຍາດ UPDATE ສະເພາະ admin ທີ່ login ແລ້ວ
 drop policy if exists "admin can update requests" on public.requests;
-create policy "admin can update requests"
+
+drop policy if exists "anyone can update status" on public.requests;
+create policy "anyone can update status"
   on public.requests for update
-  to authenticated
+  to anon, authenticated
   using (true)
   with check (true);
+
+-- ຈຳກັດສິດ column: anon ແກ້ໄດ້ສະເພາະ status (admin/authenticated ຍັງແກ້ໄດ້ທຸກ column)
+revoke update on public.requests from anon;
+grant update (status) on public.requests to anon;
 
 -- ອະນຸຍາດ DELETE ສະເພາະ admin ທີ່ login ແລ້ວ
 drop policy if exists "admin can delete requests" on public.requests;
