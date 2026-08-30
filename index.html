@@ -213,15 +213,15 @@
     <!-- Filter bar (chips) -->
     <div class="filterbar" id="filterbar">
       <button class="chip active" data-f="all">ທັງໝົດ</button>
-      <button class="chip active" data-f="request">🆘 ຄຳຮ້ອງ</button>
-      <button class="chip active" data-f="shelter">🏠 ພັກພິງ</button>
-      <button class="chip active" data-f="food_dist">🍚 ອາຫານ</button>
-      <button class="chip active" data-f="drink_water">🚰 ນ້ຳດື່ມ</button>
-      <button class="chip active" data-f="util_water">🪣 ນ້ຳໃຊ້</button>
-      <button class="chip active" data-f="relief_station">⛑️ ປະຈຳການ</button>
-      <button class="chip active" data-f="road_blocked">🚧 ທາງປິດ</button>
-      <button class="chip active" data-f="flood_high">🌊 ນ້ຳສູງ</button>
-      <button class="chip active" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
+      <button class="chip" data-f="request">🆘 ຄຳຮ້ອງ</button>
+      <button class="chip" data-f="shelter">🏠 ພັກພິງ</button>
+      <button class="chip" data-f="food_dist">🍚 ອາຫານ</button>
+      <button class="chip" data-f="drink_water">🚰 ນ້ຳດື່ມ</button>
+      <button class="chip" data-f="util_water">🪣 ນ້ຳໃຊ້</button>
+      <button class="chip" data-f="relief_station">⛑️ ປະຈຳການ</button>
+      <button class="chip" data-f="road_blocked">🚧 ທາງປິດ</button>
+      <button class="chip" data-f="flood_high">🌊 ນ້ຳສູງ</button>
+      <button class="chip" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
     </div>
 
     <!-- Legend (desktop) -->
@@ -669,7 +669,7 @@
      ============================================================ */
   let allPoints = [];   // ຂໍ້ມູນທັງໝົດຈາກ DB
   const FILTER_KEYS = ['request','shelter','food_dist','drink_water','util_water','relief_station','road_blocked','flood_high','landslide'];
-  const activeFilters = new Set(FILTER_KEYS);
+  let activeFilter = 'all';   // ເລືອກສະແດງປະເພດດຽວ ('all' = ໝົດ)
 
   async function loadRequests(){
     if (!isConfigured){ renderMarkers(); return; }
@@ -690,7 +690,7 @@
   function renderMarkers(){
     markersLayer.clearLayers();
     allPoints
-      .filter(r => activeFilters.has(filterKeyOf(r)))
+      .filter(r => activeFilter === 'all' || filterKeyOf(r) === activeFilter)
       .forEach(r => {
         const c = r.category || 'request';
         if (c === 'facility') addFacilityMarker(r);
@@ -846,29 +846,21 @@
   document.getElementById('closeBtn').addEventListener('click', closePanel);
 
   /* ============================================================
-     9) Filter chips — ເປີດ/ປິດ ການສະແດງໝຸດແຕ່ລະປະເພດ
+     9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
      ============================================================ */
   function syncChips(){
     document.querySelectorAll('.filterbar .chip').forEach(chip => {
-      const f = chip.dataset.f;
-      if (f === 'all') chip.classList.toggle('active', activeFilters.size === FILTER_KEYS.length);
-      else chip.classList.toggle('active', activeFilters.has(f));
+      chip.classList.toggle('active', chip.dataset.f === activeFilter);
     });
   }
   document.querySelectorAll('.filterbar .chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      const f = chip.dataset.f;
-      if (f === 'all'){
-        const turnAllOn = activeFilters.size < FILTER_KEYS.length;
-        activeFilters.clear();
-        if (turnAllOn) FILTER_KEYS.forEach(k => activeFilters.add(k));
-      } else {
-        activeFilters.has(f) ? activeFilters.delete(f) : activeFilters.add(f);
-      }
+      activeFilter = chip.dataset.f;   // ເລືອກປະເພດທີ່ກົດ ('all' = ໝົດ)
       syncChips();
       renderMarkers();
     });
   });
+  syncChips();
 
   /* ============================================================
      10) ກວດສະຖານະ login (ແບ່ງໃຊ້ session ດຽວກັນກັບ admin.html)
