@@ -94,6 +94,9 @@
       display:flex;align-items:center;gap:8px;
     }
     .fab.count{background:#fff;color:var(--text);font-size:13px;padding:9px 14px;}
+    /* ປຸ່ມ GPS ໄປຫາຕຳແໜ່ງຂ້ອຍ */
+    .fab.gps{background:#fff;color:#1d6fb8;font-size:22px;width:50px;height:50px;padding:0;
+      border-radius:50%;justify-content:center;align-items:center;}
     /* ປຸ່ມ "ແຈ້ງເຫດ" ໃຫຍ່ ເດັ່ນ ກົດງ່າຍ */
     .fab.add{
       font-size:19px;padding:18px 32px;font-weight:800;letter-spacing:.3px;
@@ -149,6 +152,7 @@
     .popup-btn:active{transform:scale(.98);}
     .popup-btn:disabled{opacity:.6;cursor:not-allowed;}
     a.popup-btn.nav{background:var(--blue);color:#fff;}
+    .popup-btn.undo{background:#8a94a6;}
     .popup-status.done{
       margin-top:9px;padding:8px;border-radius:9px;background:#eaf7f4;color:#1d7a6e;
       font-size:12.5px;font-weight:700;text-align:center;
@@ -248,6 +252,7 @@
 
     <!-- Floating buttons -->
     <div class="fab-wrap">
+      <button class="fab gps" id="locateBtn" title="ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ">📍</button>
       <div class="fab count" id="countBadge">📍 ໝຸດທັງໝົດ: 0</div>
       <button class="fab add" id="openFormBtn">➕ ແຈ້ງເຫດ</button>
     </div>
@@ -401,6 +406,7 @@
   const markersLayer = L.layerGroup().addTo(map);   // ໝຸດຈາກຖານຂໍ້ມູນ
   let selectedLatLng = null;                         // ຈຸດທີ່ຜູ້ໃຊ້ເລືອກ
   let pickMarker = null;                             // ໝຸດຊົ່ວຄາວ
+  let youHere = null;                                // ໝຸດ "ທ່ານຢູ່ນີ້"
 
   /* ສ້າງໄອຄອນໝຸດສີ (ໃຊ້ divIcon) */
   function makeIcon(color, emoji, count, done=false){
@@ -748,11 +754,14 @@
     const stateHtml = helped
       ? `<div class="popup-state helped">✅ ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ</div>`
       : `<div class="popup-state pending">⏳ ຍັງບໍ່ໄດ້ຮັບການຊ່ວຍເຫຼືອ</div>`;
-    // ປຸ່ມກົດ (ສະເພາະທີ່ຍັງບໍ່ໄດ້ຊ່ວຍ) — ໃຫ້ທຸກຄົນກົດໄດ້
+    // ປຸ່ມກົດ — ໃຫ້ທຸກຄົນກົດໄດ້
     let actionHtml = "";
-    if (!helped && r.id) {
+    if (r.id && !helped) {
       actionHtml = `<button class="popup-btn" onclick="markHelped('${r.id}', this)">✅ ໝາຍວ່າ ໄດ້ຊ່ວຍແລ້ວ</button>
         <div style="font-size:10.5px;color:#888;text-align:center;margin-top:3px;">ກົດໄດ້ໂດຍ ຜູ້ໄປຊ່ວຍ ຫຼື ຜູ້ແຈ້ງເອງ</div>`;
+    } else if (r.id && helped) {
+      // ຫາກກົດຫຼົງ — ແກ້ຄືນໄດ້
+      actionHtml = `<button class="popup-btn undo" onclick="markPending('${r.id}', this)">↩ ແກ້ຄືນ ຍັງບໍ່ໄດ້ຊ່ວຍ</button>`;
     }
     const navHtml = navButton(r.lat, r.lng);
 
@@ -839,18 +848,61 @@
   /* ໝາຍວ່າ "ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ" — UPDATE ສະຖານະໃນ Supabase */
   window.markHelped = async function(id, btnEl){
     if (!isConfigured){ showToast("ຕ້ອງຕັ້ງຄ່າ Supabase ກ່ອນ ຈຶ່ງອັບເດດໄດ້", "err"); return; }
+    if (!confirm("ຢືນຢັນວ່າ ຈຸດນີ້ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວແທ້ບໍ່?")) return;
     if (btnEl){ btnEl.disabled = true; btnEl.textContent = "⏳ ກຳລັງອັບເດດ..."; }
     const { error } = await supa.from('requests').update({ status: 'helped' }).eq('id', id);
     if (error){
       console.error(error);
       showToast("ອັບເດດບໍ່ໄດ້: " + error.message, "err");
-      if (btnEl){ btnEl.disabled = false; btnEl.textContent = "✅ ໝາຍວ່າຊ່ວຍເຫຼືອແລ້ວ"; }
+      if (btnEl){ btnEl.disabled = false; btnEl.textContent = "✅ ໝາຍວ່າ ໄດ້ຊ່ວຍແລ້ວ"; }
       return;
     }
     map.closePopup();
     showToast("ອັບເດດເປັນ 'ຊ່ວຍເຫຼືອແລ້ວ' ✓", "ok");
     loadRequests();
   };
+
+  /* ແກ້ຄືນ (ຫາກກົດຫຼົງ) — ກັບເປັນ "ຍັງບໍ່ໄດ້ຊ່ວຍ" */
+  window.markPending = async function(id, btnEl){
+    if (!isConfigured){ showToast("ຕ້ອງຕັ້ງຄ່າ Supabase ກ່ອນ", "err"); return; }
+    if (!confirm("ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ບໍ່?")) return;
+    if (btnEl){ btnEl.disabled = true; btnEl.textContent = "⏳ ກຳລັງອັບເດດ..."; }
+    const { error } = await supa.from('requests').update({ status: 'pending' }).eq('id', id);
+    if (error){
+      console.error(error);
+      showToast("ອັບເດດບໍ່ໄດ້: " + error.message, "err");
+      if (btnEl){ btnEl.disabled = false; btnEl.textContent = "↩ ແກ້ຄືນ ຍັງບໍ່ໄດ້ຊ່ວຍ"; }
+      return;
+    }
+    map.closePopup();
+    showToast("ແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ✓", "ok");
+    loadRequests();
+  };
+
+  /* ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ (ປຸ່ມ GPS ເທິງແຜນທີ່) */
+  function locateMe(){
+    const btn = document.getElementById('locateBtn');
+    if (!navigator.geolocation){ showToast("ບຣາວເຊີ/ອຸປະກອນ ບໍ່ຮອງຮັບ GPS", "err"); return; }
+    const old = btn.textContent; btn.textContent = '⏳';
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        map.setView([latitude, longitude], 16);
+        if (youHere) map.removeLayer(youHere);
+        youHere = L.circleMarker([latitude, longitude], {
+          radius: 9, color: '#1d6fb8', weight: 3, fillColor: '#4a9eff', fillOpacity: .9
+        }).addTo(map).bindPopup('📍 ທ່ານຢູ່ນີ້').openPopup();
+        btn.textContent = old;
+      },
+      (err) => {
+        btn.textContent = old;
+        showToast("ດຶງ GPS ບໍ່ໄດ້ — ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງຕຳແໜ່ງ", "err");
+        console.warn('locateMe:', err.code, err.message);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+  }
+  document.getElementById('locateBtn').addEventListener('click', locateMe);
 
   /* ============================================================
      8) ຕົວຊ່ວຍ (Utilities)
