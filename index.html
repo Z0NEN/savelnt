@@ -94,6 +94,17 @@
       display:flex;align-items:center;gap:8px;
     }
     .fab.count{background:#fff;color:var(--text);font-size:13px;padding:9px 14px;}
+    /* ປຸ່ມ "ແຈ້ງເຫດ" ໃຫຍ່ ເດັ່ນ ກົດງ່າຍ */
+    .fab.add{
+      font-size:19px;padding:18px 32px;font-weight:800;letter-spacing:.3px;
+      box-shadow:0 8px 24px rgba(230,57,70,.55);
+      animation:fabPulse 1.8s infinite;
+    }
+    @keyframes fabPulse{
+      0%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 0 rgba(230,57,70,.55);}
+      70%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 20px rgba(230,57,70,0);}
+      100%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 0 rgba(230,57,70,0);}
+    }
 
     .legend-float{position:absolute;left:12px;bottom:20px;z-index:1001;max-width:180px;}
 
@@ -144,14 +155,15 @@
     }
 
     /* Segmented control (ເລືອກປະເພດການປັກໝຸດ) */
-    .seg{display:flex;gap:8px;margin-top:4px;}
+    .seg{display:flex;gap:6px;margin-top:4px;}
     .seg-btn{
-      flex:1;padding:11px 6px;border:1.5px solid #d4d8dd;border-radius:11px;background:#fbfcfd;
-      font-family:inherit;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;transition:.15s;
+      flex:1;padding:11px 4px;border:1.5px solid #d4d8dd;border-radius:11px;background:#fbfcfd;
+      font-family:inherit;font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer;transition:.15s;white-space:nowrap;
     }
     .seg-btn.active{border-color:var(--blue);background:#eaf3ff;color:#1d6fb8;}
 
     .btn-fac{background:var(--blue)!important;box-shadow:0 4px 12px rgba(29,111,184,.35)!important;}
+    .btn-haz{background:#d62828!important;box-shadow:0 4px 12px rgba(214,40,40,.35)!important;}
 
     /* Filter bar (chips) */
     .filterbar{
@@ -195,6 +207,9 @@
       <button class="chip active" data-f="drink_water">🚰 ນ້ຳດື່ມ</button>
       <button class="chip active" data-f="util_water">🪣 ນ້ຳໃຊ້</button>
       <button class="chip active" data-f="relief_station">⛑️ ປະຈຳການ</button>
+      <button class="chip active" data-f="road_blocked">🚧 ທາງປິດ</button>
+      <button class="chip active" data-f="flood_high">🌊 ນ້ຳສູງ</button>
+      <button class="chip active" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
     </div>
 
     <!-- Legend (desktop) -->
@@ -209,6 +224,9 @@
         <div>🏠 ພັກພິງ &nbsp; 🍚 ອາຫານ</div>
         <div>🚰 ນ້ຳດື່ມ &nbsp; 🪣 ນ້ຳໃຊ້</div>
         <div>⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</div>
+        <div style="font-weight:700;margin:6px 0 4px;">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</div>
+        <div>🚧 ທາງໄປບໍ່ໄດ້ &nbsp; 🌊 ນ້ຳສູງ</div>
+        <div>⛰️ ດິນເຈື່ອນ</div>
       </div>
     </div>
 
@@ -233,8 +251,9 @@
         <form id="reqForm">
           <label>ປະເພດການປັກໝຸດ *</label>
           <div class="seg">
-            <button type="button" class="seg-btn active" data-cat="request">🆘 ຂໍຄວາມຊ່ວຍເຫຼືອ</button>
-            <button type="button" class="seg-btn" data-cat="facility">📍 ຈຸດບໍລິການ</button>
+            <button type="button" class="seg-btn active" data-cat="request">🆘 ຂໍຊ່ວຍ</button>
+            <button type="button" class="seg-btn" data-cat="facility">📍 ບໍລິການ</button>
+            <button type="button" class="seg-btn" data-cat="hazard">🚧 ອັນຕະລາຍ</button>
           </div>
 
           <!-- ປະເພດຄຳຮ້ອງ (ໂໝດຂໍຄວາມຊ່ວຍເຫຼືອ) -->
@@ -260,6 +279,16 @@
             </select>
           </div>
 
+          <!-- ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ (ໂໝດອັນຕະລາຍ) -->
+          <div id="hazTypeWrap" style="display:none;">
+            <label>ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ *</label>
+            <select id="hazType">
+              <option value="road_blocked">🚧 ເສັ້ນທາງໄປບໍ່ໄດ້</option>
+              <option value="flood_high">🌊 ນ້ຳຖ້ວມສູງ / ອັນຕະລາຍ</option>
+              <option value="landslide">⛰️ ດິນເຈື່ອນ</option>
+            </select>
+          </div>
+
           <label id="nameLabel">ຊື່ຜູ້ແຈ້ງເຫດ *</label>
           <input type="text" id="name" placeholder="ຊື່ ຫຼື ນາມສະກຸນ" required />
 
@@ -279,6 +308,13 @@
 
           <label id="detailsLabel">ລາຍລະອຽດເພີ່ມເຕີມ</label>
           <textarea id="details" placeholder="ເຊັ່ນ: ນ້ຳສູງ 1 ແມັດ, ມີເດັກນ້ອຍ 2 ຄົນ, ຕິດຢູ່ຊັ້ນ 2..."></textarea>
+
+          <label>📷 ຮູບພາບ (ຖ່າຍ ຫຼື ເລືອກຈາກເຄື່ອງ)</label>
+          <input type="file" id="photo" accept="image/*" />
+          <div id="photoPreview" style="display:none;margin-top:8px;position:relative;">
+            <img id="photoImg" alt="preview" style="width:100%;border-radius:10px;max-height:200px;object-fit:cover;display:block;" />
+            <button type="button" id="photoClear" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;line-height:1;">×</button>
+          </div>
 
           <label>ຈຸດພິກັດ ( Location) *</label>
           <button type="button" class="btn btn-gps" id="gpsBtn">📡 ດຶງພິກັດ GPS ປັດຈຸບັນ</button>
@@ -328,7 +364,14 @@
     relief_station: { label: "ຈຸດປະຈຳການຊ່ວຍເຫຼືອ",    emoji: "⛑️", color: "#2a9d8f" }
   };
 
-  let currentCat = 'request';   // ໂໝດຟອມປັດຈຸບັນ: request | facility
+  /* ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ */
+  const HAZARD_TYPES = {
+    road_blocked: { label: "ເສັ້ນທາງໄປບໍ່ໄດ້",     emoji: "🚧", color: "#d62828" },
+    flood_high:   { label: "ນ້ຳຖ້ວມສູງ / ອັນຕະລາຍ", emoji: "🌊", color: "#1d6fb8" },
+    landslide:    { label: "ດິນເຈື່ອນ",             emoji: "⛰️", color: "#8a5a2b" }
+  };
+
+  let currentCat = 'request';   // ໂໝດຟອມປັດຈຸບັນ: request | facility | hazard
 
   /* ============================================================
      3) ສ້າງແຜນທີ່ Leaflet (ຕັ້ງຕົ້ນທີ່ ນະຄອນຫຼວງວຽງຈັນ)
@@ -372,11 +415,26 @@
     });
   }
 
+  /* ໄອຄອນຈຸດອັນຕະລາຍ (ຮູບວົງມົນ + emoji) */
+  function makeHazardIcon(emoji, color){
+    return L.divIcon({
+      className: 'hazard-pin',
+      html: `<div style="background:${color};width:30px;height:30px;border-radius:50%;
+        border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);
+        display:flex;align-items:center;justify-content:center;font-size:16px;">${emoji}</div>`,
+      iconSize: [30,30], iconAnchor: [15,15], popupAnchor:[0,-16]
+    });
+  }
+
   /* ໄອຄອນ/ສີ ຕາມປະເພດທີ່ເລືອກຢູ່ໃນຟອມປັດຈຸບັນ */
   function currentPickIcon(){
     if (currentCat === 'facility'){
       const f = FACILITY_TYPES[document.getElementById('facType').value];
       return makeFacilityIcon(f.emoji, f.color);
+    }
+    if (currentCat === 'hazard'){
+      const h = HAZARD_TYPES[document.getElementById('hazType').value];
+      return makeHazardIcon(h.emoji, h.color);
     }
     const t = HELP_TYPES[document.getElementById('helpType').value];
     return makeIcon(t.color);
@@ -400,23 +458,28 @@
   function refreshPickIcon(){ if (pickMarker) pickMarker.setIcon(currentPickIcon()); }
   document.getElementById('helpType').addEventListener('change', refreshPickIcon);
   document.getElementById('facType').addEventListener('change', refreshPickIcon);
+  document.getElementById('hazType').addEventListener('change', refreshPickIcon);
 
   /* ============================================================
      4.1) ສະຫຼັບໂໝດຟອມ: ຄຳຮ້ອງ  <->  ຈຸດບໍລິການ
      ============================================================ */
   function applyCategoryUI(cat){
     currentCat = cat;
+    const isReq = (cat === 'request');
     const isFac = (cat === 'facility');
+    const isHaz = (cat === 'hazard');
     document.querySelectorAll('.seg-btn').forEach(b =>
       b.classList.toggle('active', b.dataset.cat === cat));
 
-    document.getElementById('reqTypeWrap').style.display = isFac ? 'none' : 'block';
+    document.getElementById('reqTypeWrap').style.display = isReq ? 'block' : 'none';
     document.getElementById('facTypeWrap').style.display = isFac ? 'block' : 'none';
-    document.getElementById('countWrap').style.display   = isFac ? 'none' : 'flex';
+    document.getElementById('hazTypeWrap').style.display = isHaz ? 'block' : 'none';
+    document.getElementById('countWrap').style.display   = isReq ? 'flex'  : 'none';
 
     const name = document.getElementById('name');
     const details = document.getElementById('details');
     const submitBtn = document.getElementById('submitBtn');
+    submitBtn.classList.remove('btn-fac','btn-haz');
 
     if (isFac){
       document.getElementById('formTitle').textContent = '📍 ເພີ່ມຈຸດບໍລິການ';
@@ -426,6 +489,14 @@
       details.placeholder = 'ເຊັ່ນ: ເປີດ 08:00-20:00, ຮັບໄດ້ 50 ຄົນ, ມີນ້ຳດື່ມ ແລະ ຫ້ອງນ້ຳ...';
       submitBtn.textContent = '📍 ບັນທຶກຈຸດບໍລິການ';
       submitBtn.classList.add('btn-fac');
+    } else if (isHaz){
+      document.getElementById('formTitle').textContent = '🚧 ແຈ້ງຈຸດອັນຕະລາຍ / ເສັ້ນທາງ';
+      document.getElementById('nameLabel').textContent = 'ຊື່ຈຸດ / ຜູ້ແຈ້ງ *';
+      name.placeholder = 'ເຊັ່ນ: ຂົວ..., ທາງເຂົ້າບ້ານ...';
+      document.getElementById('detailsLabel').textContent = 'ລາຍລະອຽດ (ນ້ຳສູງເທົ່າໃດ / ຕັ້ງແຕ່ເມື່ອໃດ)';
+      details.placeholder = 'ເຊັ່ນ: ນ້ຳຖ້ວມສູງ 1.5 ແມັດ, ລົດຜ່ານບໍ່ໄດ້...';
+      submitBtn.textContent = '🚧 ແຈ້ງຈຸດອັນຕະລາຍ';
+      submitBtn.classList.add('btn-haz');
     } else {
       document.getElementById('formTitle').textContent = '📝 ແບບຟອມແຈ້ງເຫດ';
       document.getElementById('nameLabel').textContent = 'ຊື່ຜູ້ແຈ້ງເຫດ *';
@@ -433,7 +504,6 @@
       document.getElementById('detailsLabel').textContent = 'ລາຍລະອຽດເພີ່ມເຕີມ';
       details.placeholder = 'ເຊັ່ນ: ນ້ຳສູງ 1 ແມັດ, ມີເດັກນ້ອຍ 2 ຄົນ, ຕິດຢູ່ຊັ້ນ 2...';
       submitBtn.textContent = '🚨 ສົ່ງຄຳຮ້ອງຂໍຄວາມຊ່ວຍເຫຼືອ';
-      submitBtn.classList.remove('btn-fac');
     }
     refreshPickIcon();
   }
@@ -489,22 +559,27 @@
     e.preventDefault();
     if (!selectedLatLng) { showToast("ກະລຸນາເລືອກຈຸດພິກັດກ່ອນ (GPS ຫຼື ແຕະແຜນທີ່)", "err"); return; }
 
-    const isFac = (currentCat === 'facility');
+    const cat = currentCat;
+    const isReq = (cat === 'request');
+    let help_type;
+    if (cat === 'facility') help_type = document.getElementById('facType').value;
+    else if (cat === 'hazard') help_type = document.getElementById('hazType').value;
+    else help_type = document.getElementById('helpType').value;
+
     const payload = {
-      category:     currentCat,   // request | facility
+      category:     cat,   // request | facility | hazard
       name:         document.getElementById('name').value.trim(),
       phone:        document.getElementById('phone').value.trim(),
-      help_type:    isFac ? document.getElementById('facType').value
-                          : document.getElementById('helpType').value,
-      people_count: isFac ? 0 : (parseInt(document.getElementById('people').value) || 0),
-      bedridden:    isFac ? 0 : (parseInt(document.getElementById('bedridden').value) || 0),
+      help_type:    help_type,
+      people_count: isReq ? (parseInt(document.getElementById('people').value) || 0) : 0,
+      bedridden:    isReq ? (parseInt(document.getElementById('bedridden').value) || 0) : 0,
       details:      document.getElementById('details').value.trim(),
       lat:          selectedLatLng.lat,
       lng:          selectedLatLng.lng
     };
 
     const btn = document.getElementById('submitBtn');
-    const savedCat = currentCat;
+    const savedCat = cat;
     btn.disabled = true; btn.textContent = "⏳ ກຳລັງສົ່ງ...";
 
     if (!isConfigured) {
@@ -516,6 +591,22 @@
       return;
     }
 
+    // ອັບໂຫຼດຮູບ (ຖ້າມີ) ຂຶ້ນ Supabase Storage bucket 'photos'
+    const photoFile = document.getElementById('photo').files[0];
+    if (photoFile) {
+      btn.textContent = "⏳ ກຳລັງອັບຮູບ...";
+      const ext = (photoFile.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+      const up = await supa.storage.from('photos').upload(path, photoFile, { cacheControl:'3600', upsert:false });
+      if (up.error) {
+        console.error(up.error);
+        showToast("ອັບຮູບບໍ່ໄດ້: " + up.error.message + " (ຈະບັນທຶກໂດຍບໍ່ມີຮູບ)", "err");
+      } else {
+        payload.photo_url = supa.storage.from('photos').getPublicUrl(path).data.publicUrl;
+      }
+      btn.textContent = "⏳ ກຳລັງສົ່ງ...";
+    }
+
     const { error } = await supa.from('requests').insert([payload]);
     if (error) {
       console.error(error);
@@ -523,13 +614,17 @@
       btn.disabled = false; applyCategoryUI(savedCat);
       return;
     }
-    showToast(isFac ? "ບັນທຶກຈຸດບໍລິການສຳເລັດ ✓" : "ສົ່ງຄຳຮ້ອງສຳເລັດ ✓ ຂໍໃຫ້ປອດໄພ", "ok");
+    const okMsg = savedCat === 'request' ? "ສົ່ງຄຳຮ້ອງສຳເລັດ ✓ ຂໍໃຫ້ປອດໄພ"
+                : savedCat === 'hazard'  ? "ແຈ້ງຈຸດອັນຕະລາຍສຳເລັດ ✓"
+                : "ບັນທຶກຈຸດບໍລິການສຳເລັດ ✓";
+    showToast(okMsg, "ok");
     afterSubmit(btn, savedCat);
     loadRequests();   // ໂຫຼດໃໝ່ໃຫ້ເຫັນໝຸດຫຼ້າສຸດ
   });
 
   function afterSubmit(btn, cat){
     document.getElementById('reqForm').reset();
+    document.getElementById('photoPreview').style.display = 'none';
     document.getElementById('coordBox').innerHTML = "ຍັງບໍ່ໄດ້ເລືອກຈຸດ — ແຕະເທິງແຜນທີ່ ຫຼື ກົດ GPS";
     if (pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
     selectedLatLng = null;
@@ -538,11 +633,28 @@
     closePanel();
   }
 
+  /* ຕົວຢ່າງຮູບ (preview) ກ່ອນສົ່ງ */
+  document.getElementById('photo').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const prev = document.getElementById('photoPreview');
+    const img = document.getElementById('photoImg');
+    if (file){
+      img.src = URL.createObjectURL(file);
+      prev.style.display = 'block';
+    } else {
+      prev.style.display = 'none';
+    }
+  });
+  document.getElementById('photoClear').addEventListener('click', () => {
+    document.getElementById('photo').value = '';
+    document.getElementById('photoPreview').style.display = 'none';
+  });
+
   /* ============================================================
      7) ໂຫຼດຂໍ້ມູນ (SELECT) ຈາກ Supabase ແລ້ວປັກໝຸດ
      ============================================================ */
   let allPoints = [];   // ຂໍ້ມູນທັງໝົດຈາກ DB
-  const FILTER_KEYS = ['request','shelter','food_dist','drink_water','util_water','relief_station'];
+  const FILTER_KEYS = ['request','shelter','food_dist','drink_water','util_water','relief_station','road_blocked','flood_high','landslide'];
   const activeFilters = new Set(FILTER_KEYS);
 
   async function loadRequests(){
@@ -557,7 +669,7 @@
   }
 
   function filterKeyOf(r){
-    return ((r.category || 'request') === 'facility') ? r.help_type : 'request';
+    return ((r.category || 'request') === 'request') ? 'request' : r.help_type;
   }
 
   /* ວາດໝຸດໃໝ່ທັງໝົດ ຕາມ filter ທີ່ເປີດຢູ່ */
@@ -565,7 +677,12 @@
     markersLayer.clearLayers();
     allPoints
       .filter(r => activeFilters.has(filterKeyOf(r)))
-      .forEach(r => ((r.category || 'request') === 'facility') ? addFacilityMarker(r) : addRequestMarker(r));
+      .forEach(r => {
+        const c = r.category || 'request';
+        if (c === 'facility') addFacilityMarker(r);
+        else if (c === 'hazard') addHazardMarker(r);
+        else addRequestMarker(r);
+      });
     updateCount(markersLayer.getLayers().length);
   }
 
@@ -599,6 +716,7 @@
       <div class="popup-row"><b>👥 ຈຳນວນຄົນ:</b> ${r.people_count || 0} ຄົນ</div>
       ${bedHtml}
       ${detailHtml}
+      ${photoHtml(r)}
       <div class="popup-time">🕒 ແຈ້ງເຫດເມື່ອ: ${time}</div>
       ${navHtml}
       ${statusHtml}
@@ -610,6 +728,14 @@
   function navButton(lat, lng){
     return `<a class="popup-btn nav" target="_blank" rel="noopener"
       href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">🗺️ ນຳທາງໄປຫາໝຸດ</a>`;
+  }
+
+  /* ຮູບພາບໃນ popup (ຖ້າມີ) */
+  function photoHtml(r){
+    if (!r.photo_url) return "";
+    const u = encodeURI(r.photo_url);
+    return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="ຮູບ"
+      style="width:100%;border-radius:8px;margin-top:8px;max-height:150px;object-fit:cover;display:block;" /></a>`;
   }
 
   /* ໝຸດ "ຈຸດບໍລິການ" (ຮູບສີ່ຫຼ່ຽມ + emoji) */
@@ -626,7 +752,29 @@
       <span class="popup-badge" style="background:${f.color}">${f.label}</span>
       ${phoneHtml}
       ${detailHtml}
+      ${photoHtml(r)}
       <div class="popup-time">🕒 ອັບເດດເມື່ອ: ${time}</div>
+      ${navButton(r.lat, r.lng)}
+    `);
+    marker.addTo(markersLayer);
+  }
+
+  /* ໝຸດ "ອັນຕະລາຍ / ເສັ້ນທາງ" (ຮູບວົງມົນ + emoji) */
+  function addHazardMarker(r){
+    const h = HAZARD_TYPES[r.help_type] || HAZARD_TYPES.road_blocked;
+    const marker = L.marker([r.lat, r.lng], { icon: makeHazardIcon(h.emoji, h.color) });
+    const time = formatTime(r.created_at);
+    const phoneHtml = r.phone
+      ? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
+    const detailHtml = r.details
+      ? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
+    marker.bindPopup(`
+      <div class="popup-title">${h.emoji} ${escapeHtml(r.name || h.label)}</div>
+      <span class="popup-badge" style="background:${h.color}">${h.label}</span>
+      ${phoneHtml}
+      ${detailHtml}
+      ${photoHtml(r)}
+      <div class="popup-time">🕒 ແຈ້ງເມື່ອ: ${time}</div>
       ${navButton(r.lat, r.lng)}
     `);
     marker.addTo(markersLayer);

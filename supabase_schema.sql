@@ -18,11 +18,14 @@ create table if not exists public.requests (
   lat          double precision not null,         -- ເສັ້ນຂະໜານ (latitude)
   lng          double precision not null,         -- ເສັ້ນແວງ (longitude)
   status       text        default 'pending',    -- ສະຖານະ: pending / helped
+  photo_url    text,                              -- ລິ້ງຮູບພາບ (Supabase Storage)
   created_at   timestamptz default now()          -- ເວລາທີ່ແຈ້ງເຫດ
 );
 
--- ຖ້າເຄີຍສ້າງຕາຕະລາງແລ້ວ (ບໍ່ມີ column category) ໃຫ້ເພີ່ມ column ນີ້:
+-- ຖ້າເຄີຍສ້າງຕາຕະລາງແລ້ວ ໃຫ້ເພີ່ມ column ໃໝ່ (category ສຳລັບ facility/hazard, photo_url ສຳລັບຮູບ):
 alter table public.requests add column if not exists category text default 'request';
+alter table public.requests add column if not exists photo_url text;
+-- ໝາຍເຫດ: help_type ຮັບຄ່າ hazard ໄດ້ເລີຍ (road_blocked/flood_high/landslide) ບໍ່ຕ້ອງແກ້ column
 
 -- ດັດຊະນີ (index) ຊ່ວຍໃຫ້ດຶງຂໍ້ມູນລ່າສຸດໄວຂຶ້ນ
 create index if not exists requests_created_at_idx on public.requests (created_at desc);
@@ -76,3 +79,31 @@ create policy "admin can delete requests"
 --     ເພື່ອບໍ່ໃຫ້ຄົນອື່ນສະໝັກເອງ (ໃຫ້ສ້າງ user ຜ່ານ Dashboard ເທົ່ານັ້ນ)
 --  3) ໃຊ້ Email/Password ນັ້ນ login ໃນໜ້າ admin.html
 -- ==================================================================
+
+
+-- ============================================================
+--  4) STORAGE — bucket 'photos' ສຳລັບເກັບຮູບພາບຈຸດແຈ້ງເຫດ
+--     (ຟັງຊັ່ນຖ່າຍຮູບ/ແນບຮູບ)
+-- ============================================================
+
+-- ສ້າງ bucket 'photos' ແບບ public (ເບິ່ງຮູບໄດ້ຜ່ານລິ້ງໂດຍກົງ)
+insert into storage.buckets (id, name, public)
+values ('photos', 'photos', true)
+on conflict (id) do update set public = true;
+
+-- ອະນຸຍາດໃຫ້ທຸກຄົນ (anon) ອັບໂຫຼດຮູບເຂົ້າ bucket 'photos'
+drop policy if exists "public upload photos" on storage.objects;
+create policy "public upload photos"
+  on storage.objects for insert
+  to anon, authenticated
+  with check (bucket_id = 'photos');
+
+-- ອະນຸຍາດໃຫ້ອ່ານ/ເບິ່ງຮູບ (public read)
+drop policy if exists "public read photos" on storage.objects;
+create policy "public read photos"
+  on storage.objects for select
+  to anon, authenticated
+  using (bucket_id = 'photos');
+
+-- ໝາຍເຫດ: ບໍ່ໄດ້ເປີດ DELETE ຮູບໃຫ້ anon. ຖ້າ admin ຢາກລົບຮູບ ໃຫ້ຈັດການຜ່ານ Dashboard
+--         ຫຼື ເພີ່ມ policy delete ໃຫ້ authenticated ຕາມຕ້ອງການ.

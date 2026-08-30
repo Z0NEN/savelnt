@@ -109,6 +109,7 @@
         <option value="all">ທຸກປະເພດ</option>
         <option value="request">🆘 ຄຳຮ້ອງຊ່ວຍເຫຼືອ</option>
         <option value="facility">📍 ຈຸດບໍລິການ</option>
+        <option value="hazard">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</option>
       </select>
       <select id="fStatus">
         <option value="all">ທຸກສະຖານະ</option>
@@ -124,7 +125,7 @@
         <thead>
           <tr>
             <th>ເວລາ</th><th>ປະເພດ</th><th>ຊື່</th><th>ໂທ</th>
-            <th>ຄົນ</th><th>ລາຍລະອຽດ</th><th>ສະຖານະ</th><th>ຈັດການ</th>
+            <th>ຄົນ</th><th>ຮູບ</th><th>ລາຍລະອຽດ</th><th>ສະຖານະ</th><th>ຈັດການ</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -154,6 +155,11 @@
     shelter:{label:"🏠 ຈຸດພັກພິງ",color:"#1d6fb8"}, food_dist:{label:"🍚 ຈຸດແຈກອາຫານ",color:"#e67700"},
     drink_water:{label:"🚰 ຈຸດແຈກນ້ຳດື່ມ",color:"#0aa5c9"}, util_water:{label:"🪣 ຈຸດແຈກນ້ຳໃຊ້",color:"#6a4fb3"},
     relief_station:{label:"⛑️ ຈຸດປະຈຳການ",color:"#2a9d8f"}
+  };
+  const HAZARD_TYPES = {
+    road_blocked:{label:"🚧 ເສັ້ນທາງໄປບໍ່ໄດ້",color:"#d62828"},
+    flood_high:{label:"🌊 ນ້ຳຖ້ວມສູງ",color:"#1d6fb8"},
+    landslide:{label:"⛰️ ດິນເຈື່ອນ",color:"#8a5a2b"}
   };
 
   let allData = [];
@@ -245,6 +251,10 @@
       const f = FACILITY_TYPES[r.help_type] || {label:r.help_type,color:'#6c757d'};
       return { label:f.label, color:f.color };
     }
+    if (r.category==='hazard'){
+      const hz = HAZARD_TYPES[r.help_type] || {label:r.help_type,color:'#d62828'};
+      return { label:hz.label, color:hz.color };
+    }
     const t = HELP_TYPES[r.help_type] || HELP_TYPES.other;
     return { label:t.label, color:t.color };
   }
@@ -297,12 +307,17 @@
       const navBtn = `<a class="act nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}">🗺️</a>`;
       const delBtn = `<button class="act del" onclick="delRow('${r.id}', this)">🗑️</button>`;
 
+      const photo = r.photo_url
+        ? `<a href="${encodeURI(r.photo_url)}" target="_blank" rel="noopener"><img src="${encodeURI(r.photo_url)}" alt="ຮູບ" style="width:46px;height:46px;object-fit:cover;border-radius:6px;display:block;" /></a>`
+        : '<span class="muted">-</span>';
+
       return `<tr>
         <td class="muted" style="white-space:nowrap;">${fmt(r.created_at)}</td>
         <td><span class="badge" style="background:${ti.color}">${esc(ti.label)}</span></td>
         <td>${esc(r.name||'-')}</td>
         <td style="white-space:nowrap;">${phone}</td>
         <td>${people}</td>
+        <td>${photo}</td>
         <td style="max-width:220px;">${esc(r.details||'') || '<span class="muted">-</span>'}</td>
         <td>${statusCell}</td>
         <td><div class="actions">${toggleBtn}${navBtn}${delBtn}</div></td>
