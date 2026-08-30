@@ -202,6 +202,19 @@
       background:#fff3cd;border:1px solid #ffe08a;color:#8a6d00;font-size:12px;
       padding:10px 12px;border-radius:10px;margin-bottom:12px;line-height:1.5;
     }
+
+    /* Edit modal (admin) */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;display:flex;align-items:center;justify-content:center;padding:16px;}
+    .modal{background:var(--card);border-radius:16px;box-shadow:var(--shadow);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:20px;}
+    .modal h3{margin:0 0 12px;font-size:17px;}
+    .modal label{display:block;font-size:13px;font-weight:700;margin:10px 0 4px;}
+    .modal input,.modal select,.modal textarea{width:100%;padding:10px 12px;border:1px solid #d4d8dd;border-radius:9px;font-size:14px;font-family:inherit;background:#fbfcfd;}
+    .modal textarea{min-height:60px;resize:vertical;}
+    .modal .mrow2{display:flex;gap:10px;}.modal .mrow2>div{flex:1;}
+    .modal-actions{display:flex;gap:10px;margin-top:18px;}
+    .modal-actions button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
+    .modal-actions .cancel{background:#e9ecef;color:#333;}
+    .modal-actions .save{background:var(--green);color:#fff;}
   </style>
 </head>
 <body>
@@ -225,7 +238,7 @@
       <button class="chip" data-f="shelter">🏠 ພັກພິງ</button>
       <button class="chip" data-f="food_dist">🍚 ອາຫານ</button>
       <button class="chip" data-f="drink_water">🚰 ນ້ຳດື່ມ</button>
-      <button class="chip" data-f="util_water">🪣 ນ້ຳໃຊ້</button>
+      <button class="chip" data-f="util_water">💧 ນ້ຳໃຊ້</button>
       <button class="chip" data-f="relief_station">⛑️ ປະຈຳການ</button>
       <button class="chip" data-f="road_blocked">🚧 ທາງປິດ</button>
       <button class="chip" data-f="flood_high">🌊 ນ້ຳສູງ</button>
@@ -242,7 +255,7 @@
         <div><span class="dot" style="background:var(--gray)"></span> ອື່ນໆ</div>
         <div style="font-weight:700;margin:6px 0 4px;">📍 ຈຸດບໍລິການ</div>
         <div>🏠 ພັກພິງ &nbsp; 🍚 ອາຫານ</div>
-        <div>🚰 ນ້ຳດື່ມ &nbsp; 🪣 ນ້ຳໃຊ້</div>
+        <div>🚰 ນ້ຳດື່ມ &nbsp; 💧 ນ້ຳໃຊ້</div>
         <div>⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</div>
         <div style="font-weight:700;margin:6px 0 4px;">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</div>
         <div>🚧 ທາງໄປບໍ່ໄດ້ &nbsp; 🌊 ນ້ຳສູງ</div>
@@ -301,7 +314,7 @@
               <option value="shelter">🏠 ຈຸດພັກພິງ</option>
               <option value="food_dist">🍚 ຈຸດແຈກອາຫານ</option>
               <option value="drink_water">🚰 ຈຸດແຈກນ້ຳດື່ມ</option>
-              <option value="util_water">🪣 ຈຸດແຈກນ້ຳໃຊ້</option>
+              <option value="util_water">💧 ຈຸດແຈກນ້ຳໃຊ້</option>
               <option value="relief_station">⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</option>
             </select>
           </div>
@@ -350,6 +363,34 @@
     </aside>
   </div>
 
+  <!-- Edit modal (ສະເພาະ admin) -->
+  <div id="editModal" class="modal-backdrop" style="display:none;">
+    <div class="modal">
+      <h3>✏️ ແກ້ໄຂຂໍ້ມູນຈຸດ</h3>
+      <input type="hidden" id="eId" />
+      <label>ປະເພດການປັກໝຸດ</label>
+      <select id="eCategory">
+        <option value="request">🆘 ຄຳຮ້ອງຊ່ວຍເຫຼືອ</option>
+        <option value="facility">📍 ຈຸດບໍລິການ</option>
+        <option value="hazard">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</option>
+      </select>
+      <label>ປະເພດຍ່ອຍ</label><select id="eType"></select>
+      <label>ຊື່</label><input id="eName" />
+      <label>ເບີໂທ</label><input id="ePhone" />
+      <div class="mrow2">
+        <div><label>ຈຳນວນຄົນ</label><input id="ePeople" type="number" min="0" /></div>
+        <div><label>ຕິດເຕຽງ</label><input id="eBed" type="number" min="0" /></div>
+      </div>
+      <label>ລາຍລະອຽດ</label><textarea id="eDetails"></textarea>
+      <label>ສະຖານະ</label>
+      <select id="eStatus"><option value="pending">ຍັງບໍ່ໄດ້ຊ່ວຍ / ຍັງ</option><option value="helped">ຊ່ວຍແລ້ວ / ໄປໄດ້ແລ້ວ</option></select>
+      <div class="modal-actions">
+        <button class="cancel" id="eCancel">ຍົກເລີກ</button>
+        <button class="save" id="eSave">💾 ບັນທຶກ</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -384,7 +425,7 @@
     shelter:        { label: "ຈຸດພັກພິງ",              emoji: "🏠", color: "#1d6fb8" },
     food_dist:      { label: "ຈຸດແຈກອາຫານ",            emoji: "🍚", color: "#e67700" },
     drink_water:    { label: "ຈຸດແຈກນ້ຳດື່ມ",          emoji: "🚰", color: "#0aa5c9" },
-    util_water:     { label: "ຈຸດແຈກນ້ຳໃຊ້",           emoji: "🪣", color: "#6a4fb3" },
+    util_water:     { label: "ຈຸດແຈກນ້ຳໃຊ້",           emoji: "💧", color: "#6a4fb3" },
     relief_station: { label: "ຈຸດປະຈຳການຊ່ວຍເຫຼືອ",    emoji: "⛑️", color: "#2a9d8f" }
   };
 
@@ -800,6 +841,7 @@
       <div class="popup-time">🕒 ແຈ້ງເຫດເມື່ອ: ${time}</div>
       ${navHtml}
       ${actionHtml}
+      ${adminButtons(r)}
     `);
     marker.addTo(markersLayer);
   }
@@ -843,6 +885,7 @@
       ${photoHtml(r)}
       <div class="popup-time">🕒 ອັບເດດເມື່ອ: ${time}</div>
       ${navButton(r.lat, r.lng)}
+      ${adminButtons(r)}
     `);
     marker.addTo(markersLayer);
   }
@@ -880,6 +923,7 @@
       <div class="popup-time">🕒 ແຈ້ງເມື່ອ: ${time}</div>
       ${navButton(r.lat, r.lng)}
       ${actionHtml}
+      ${adminButtons(r)}
     `);
     marker.addTo(markersLayer);
   }
@@ -907,6 +951,69 @@
   // ອັນຕະລາຍ/ເສັ້ນທາງ: ໄປໄດ້ແລ້ວ / ແກ້ຄືນ
   window.markPassable = (id, b) => updateStatus(id, 'helped',  b, { confirm:"ຢືນຢັນວ່າ ເສັ້ນທາງ/ຈຸດນີ້ ໄປໄດ້ / ຄືນສູ່ປົກກະຕິແລ້ວແທ້ບໍ່?", ok:"ອັບເດດເປັນ 'ໄປໄດ້ແລ້ວ' ✓" });
   window.markBlocked  = (id, b) => updateStatus(id, 'pending', b, { confirm:"ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງໄປບໍ່ໄດ້' ບໍ່?", ok:"ແກ້ຄືນເປັນ 'ຍັງໄປບໍ່ໄດ້' ✓" });
+
+  /* ===== ແກ້ໄຂ / ລົບ (ສະເພາະ admin ທີ່ login) ===== */
+  function adminButtons(r){
+    if (!isAdmin || !r.id) return '';
+    return `<div style="display:flex;gap:6px;margin-top:8px;">
+      <button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>
+      <button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>
+    </div>`;
+  }
+  const _editModal = document.getElementById('editModal');
+  function _typeOptions(cat, selected){
+    const map2 = cat==='facility' ? FACILITY_TYPES : cat==='hazard' ? HAZARD_TYPES : HELP_TYPES;
+    return Object.entries(map2).map(([k,v]) => `<option value="${k}" ${k===selected?'selected':''}>${v.emoji?v.emoji+' ':''}${v.label}</option>`).join('');
+  }
+  window.editPoint = function(id){
+    const r = allPoints.find(x => x.id === id); if (!r) return;
+    document.getElementById('eId').value = r.id;
+    document.getElementById('eCategory').value = r.category || 'request';
+    document.getElementById('eType').innerHTML = _typeOptions(r.category || 'request', r.help_type);
+    document.getElementById('eName').value = r.name || '';
+    document.getElementById('ePhone').value = r.phone || '';
+    document.getElementById('ePeople').value = r.people_count || 0;
+    document.getElementById('eBed').value = r.bedridden || 0;
+    document.getElementById('eDetails').value = r.details || '';
+    document.getElementById('eStatus').value = (r.status === 'helped') ? 'helped' : 'pending';
+    map.closePopup();
+    _editModal.style.display = 'flex';
+  };
+  document.getElementById('eCategory').addEventListener('change', e => {
+    document.getElementById('eType').innerHTML = _typeOptions(e.target.value);
+  });
+  document.getElementById('eCancel').addEventListener('click', () => _editModal.style.display = 'none');
+  _editModal.addEventListener('click', e => { if (e.target === _editModal) _editModal.style.display = 'none'; });
+  document.getElementById('eSave').addEventListener('click', async () => {
+    const id = document.getElementById('eId').value;
+    const cat = document.getElementById('eCategory').value;
+    const isReq = (cat === 'request');
+    const patch = {
+      category: cat,
+      help_type: document.getElementById('eType').value,
+      name: document.getElementById('eName').value.trim(),
+      phone: document.getElementById('ePhone').value.trim(),
+      people_count: isReq ? (parseInt(document.getElementById('ePeople').value) || 0) : 0,
+      bedridden: isReq ? (parseInt(document.getElementById('eBed').value) || 0) : 0,
+      details: document.getElementById('eDetails').value.trim(),
+      status: document.getElementById('eStatus').value
+    };
+    const b = document.getElementById('eSave'); b.disabled = true; b.textContent = '⏳ ກຳລັງບັນທຶກ...';
+    const { error } = await supa.from('requests').update(patch).eq('id', id);
+    b.disabled = false; b.textContent = '💾 ບັນທຶກ';
+    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message + " (ຕ້ອງ login admin)", "err"); return; }
+    showToast("ບັນທຶກແລ້ວ ✓", "ok");
+    _editModal.style.display = 'none';
+    loadRequests();
+  });
+  window.deletePoint = async function(id){
+    if (!confirm("ຕ້ອງການລົບຈຸດນີ້ແທ້ບໍ່? ການລົບຈະກູ້ຄືນບໍ່ໄດ້.")) return;
+    const { error } = await supa.from('requests').delete().eq('id', id);
+    if (error){ console.error(error); showToast("ລົບບໍ່ໄດ້: " + error.message + " (ຕ້ອງ login admin)", "err"); return; }
+    map.closePopup();
+    showToast("ລົບແລ້ວ ✓", "ok");
+    loadRequests();
+  };
 
   /* ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ (ປຸ່ມ GPS ເທິງແຜນທີ່) */
   function locateMe(){

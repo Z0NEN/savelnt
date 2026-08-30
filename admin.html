@@ -59,7 +59,20 @@
     .pill.helped{background:#eaf7f4;color:#1d7a6e;}
     .actions{display:flex;gap:6px;flex-wrap:wrap;}
     .act{border:none;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:none;color:#fff;display:inline-block;}
-    .act.done{background:var(--green);} .act.undo{background:#8a94a6;} .act.nav{background:var(--blue);} .act.del{background:var(--red);}
+    .act.done{background:var(--green);} .act.undo{background:#8a94a6;} .act.nav{background:var(--blue);} .act.del{background:var(--red);} .act.edit{background:#f0932b;}
+
+    /* Edit modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;display:flex;align-items:center;justify-content:center;padding:16px;}
+    .modal{background:var(--card);border-radius:16px;box-shadow:var(--shadow);width:100%;max-width:440px;max-height:90vh;overflow-y:auto;padding:20px;}
+    .modal h3{margin:0 0 12px;font-size:17px;}
+    .modal label{display:block;font-size:13px;font-weight:700;margin:10px 0 4px;}
+    .modal input,.modal select,.modal textarea{width:100%;padding:10px 12px;border:1px solid #d4d8dd;border-radius:9px;font-size:14px;font-family:inherit;background:#fbfcfd;}
+    .modal textarea{min-height:60px;resize:vertical;}
+    .modal .row2{display:flex;gap:10px;}.modal .row2>div{flex:1;}
+    .modal-actions{display:flex;gap:10px;margin-top:18px;}
+    .modal-actions button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
+    .modal-actions .cancel{background:#e9ecef;color:#333;}
+    .modal-actions .save{background:var(--green);color:#fff;}
     .muted{color:var(--muted);}
     .empty{text-align:center;padding:36px;color:var(--muted);}
     .cfg-warn{background:#fff3cd;border:1px solid #ffe08a;color:#8a6d00;font-size:13px;padding:12px 14px;border-radius:10px;margin-bottom:14px;}
@@ -134,6 +147,34 @@
     </div>
   </div>
 
+  <!-- Edit modal -->
+  <div id="editModal" class="modal-backdrop" style="display:none;">
+    <div class="modal">
+      <h3>✏️ ແກ້ໄຂຂໍ້ມູນຈຸດ</h3>
+      <input type="hidden" id="eId" />
+      <label>ປະເພດການປັກໝຸດ</label>
+      <select id="eCategory">
+        <option value="request">🆘 ຄຳຮ້ອງຊ່ວຍເຫຼືອ</option>
+        <option value="facility">📍 ຈຸດບໍລິການ</option>
+        <option value="hazard">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</option>
+      </select>
+      <div id="eTypeWrap"><label>ປະເພດຍ່ອຍ</label><select id="eType"></select></div>
+      <label>ຊື່</label><input id="eName" />
+      <label>ເບີໂທ</label><input id="ePhone" />
+      <div class="row2">
+        <div><label>ຈຳນວນຄົນ</label><input id="ePeople" type="number" min="0" /></div>
+        <div><label>ຕິດເຕຽງ</label><input id="eBed" type="number" min="0" /></div>
+      </div>
+      <label>ລາຍລະອຽດ</label><textarea id="eDetails"></textarea>
+      <label>ສະຖານະ</label>
+      <select id="eStatus"><option value="pending">ຍັງບໍ່ໄດ້ຊ່ວຍ / ຍັງ</option><option value="helped">ຊ່ວຍແລ້ວ / ໄປໄດ້ແລ້ວ</option></select>
+      <div class="modal-actions">
+        <button class="cancel" id="eCancel">ຍົກເລີກ</button>
+        <button class="save" id="eSave">💾 ບັນທຶກ</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -153,7 +194,7 @@
   };
   const FACILITY_TYPES = {
     shelter:{label:"🏠 ຈຸດພັກພິງ",color:"#1d6fb8"}, food_dist:{label:"🍚 ຈຸດແຈກອາຫານ",color:"#e67700"},
-    drink_water:{label:"🚰 ຈຸດແຈກນ້ຳດື່ມ",color:"#0aa5c9"}, util_water:{label:"🪣 ຈຸດແຈກນ້ຳໃຊ້",color:"#6a4fb3"},
+    drink_water:{label:"🚰 ຈຸດແຈກນ້ຳດື່ມ",color:"#0aa5c9"}, util_water:{label:"💧 ຈຸດແຈກນ້ຳໃຊ້",color:"#6a4fb3"},
     relief_station:{label:"⛑️ ຈຸດປະຈຳການ",color:"#2a9d8f"}
   };
   const HAZARD_TYPES = {
@@ -305,6 +346,7 @@
           : `<button class="act done" onclick="setStatus('${r.id}','helped')">✓ ຊ່ວຍແລ້ວ</button>`;
       }
       const navBtn = `<a class="act nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}">🗺️</a>`;
+      const editBtn = `<button class="act edit" onclick="editRow('${r.id}')">✏️</button>`;
       const delBtn = `<button class="act del" onclick="delRow('${r.id}', this)">🗑️</button>`;
 
       let photoUrls = Array.isArray(r.photo_urls) ? r.photo_urls.filter(Boolean) : [];
@@ -322,7 +364,7 @@
         <td>${photo}</td>
         <td style="max-width:220px;">${esc(r.details||'') || '<span class="muted">-</span>'}</td>
         <td>${statusCell}</td>
-        <td><div class="actions">${toggleBtn}${navBtn}${delBtn}</div></td>
+        <td><div class="actions">${toggleBtn}${editBtn}${navBtn}${delBtn}</div></td>
       </tr>`;
     }).join('');
   }
@@ -342,6 +384,53 @@
   };
 
   /* ---------- ລົບ ---------- */
+  /* ---------- ແກ້ໄຂ (Edit) ---------- */
+  const editModal = document.getElementById('editModal');
+  function typeOptions(cat, selected){
+    const map = cat==='facility' ? FACILITY_TYPES : cat==='hazard' ? HAZARD_TYPES : HELP_TYPES;
+    return Object.entries(map).map(([k,v]) => `<option value="${k}" ${k===selected?'selected':''}>${v.label}</option>`).join('');
+  }
+  window.editRow = function(id){
+    const r = allData.find(x => x.id === id); if (!r) return;
+    document.getElementById('eId').value = r.id;
+    document.getElementById('eCategory').value = r.category || 'request';
+    document.getElementById('eType').innerHTML = typeOptions(r.category || 'request', r.help_type);
+    document.getElementById('eName').value = r.name || '';
+    document.getElementById('ePhone').value = r.phone || '';
+    document.getElementById('ePeople').value = r.people_count || 0;
+    document.getElementById('eBed').value = r.bedridden || 0;
+    document.getElementById('eDetails').value = r.details || '';
+    document.getElementById('eStatus').value = (r.status === 'helped') ? 'helped' : 'pending';
+    editModal.style.display = 'flex';
+  };
+  document.getElementById('eCategory').addEventListener('change', e => {
+    document.getElementById('eType').innerHTML = typeOptions(e.target.value);
+  });
+  document.getElementById('eCancel').addEventListener('click', () => editModal.style.display = 'none');
+  editModal.addEventListener('click', e => { if (e.target === editModal) editModal.style.display = 'none'; });
+  document.getElementById('eSave').addEventListener('click', async () => {
+    const id = document.getElementById('eId').value;
+    const cat = document.getElementById('eCategory').value;
+    const isReq = (cat === 'request');
+    const patch = {
+      category: cat,
+      help_type: document.getElementById('eType').value,
+      name: document.getElementById('eName').value.trim(),
+      phone: document.getElementById('ePhone').value.trim(),
+      people_count: isReq ? (parseInt(document.getElementById('ePeople').value) || 0) : 0,
+      bedridden: isReq ? (parseInt(document.getElementById('eBed').value) || 0) : 0,
+      details: document.getElementById('eDetails').value.trim(),
+      status: document.getElementById('eStatus').value
+    };
+    const btn = document.getElementById('eSave'); btn.disabled = true; btn.textContent = '⏳ ກຳລັງບັນທຶກ...';
+    const { error } = await supa.from('requests').update(patch).eq('id', id);
+    btn.disabled = false; btn.textContent = '💾 ບັນທຶກ';
+    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message, "err"); return; }
+    showToast("ບັນທຶກແລ້ວ ✓", "ok");
+    editModal.style.display = 'none';
+    loadData();
+  });
+
   window.delRow = async function(id, btn){
     if (!confirm("ຕ້ອງການລົບໝຸດນີ້ແທ້ບໍ່? ການລົບຈະກູ້ຄືນບໍ່ໄດ້.")) return;
     if (btn) btn.disabled = true;
