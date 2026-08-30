@@ -321,12 +321,9 @@
           <label id="detailsLabel">ລາຍລະອຽດເພີ່ມເຕີມ</label>
           <textarea id="details" placeholder="ເຊັ່ນ: ນ້ຳສູງ 1 ແມັດ, ມີເດັກນ້ອຍ 2 ຄົນ, ຕິດຢູ່ຊັ້ນ 2..."></textarea>
 
-          <label>📷 ຮູບພາບ (ຖ່າຍ ຫຼື ເລືອກຈາກເຄື່ອງ)</label>
-          <input type="file" id="photo" accept="image/*" />
-          <div id="photoPreview" style="display:none;margin-top:8px;position:relative;">
-            <img id="photoImg" alt="preview" style="width:100%;border-radius:10px;max-height:200px;object-fit:cover;display:block;" />
-            <button type="button" id="photoClear" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;line-height:1;">×</button>
-          </div>
+          <label>📷 ຮູບພາບ (ຖ່າຍ ຫຼື ເລືອກ — ສູງສຸດ 3 ຮູບ)</label>
+          <input type="file" id="photo" accept="image/*" multiple />
+          <div id="photoPreview" style="display:none;margin-top:8px;gap:6px;flex-wrap:wrap;"></div>
 
           <label>ຈຸດພິກັດ ( Location) *</label>
           <button type="button" class="btn btn-gps" id="gpsBtn">📡 ດຶງພິກັດ GPS ປັດຈຸບັນ</button>
@@ -605,19 +602,18 @@
       return;
     }
 
-    // ອັບໂຫຼດຮູບ (ຖ້າມີ) ຂຶ້ນ Supabase Storage bucket 'photos' — ບີບອັດກ່ອນອັບ
-    const photoFile = document.getElementById('photo').files[0];
-    if (photoFile) {
-      btn.textContent = "⏳ ກຳລັງອັບຮູບ...";
-      const blob = await compressImage(photoFile);   // ຫຍໍ້ຮູບໃຫ້ນ້ອຍ
-      const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
-      const up = await supa.storage.from('photos').upload(path, blob, { cacheControl:'3600', upsert:false, contentType:'image/jpeg' });
-      if (up.error) {
-        console.error(up.error);
-        showToast("ອັບຮູບບໍ່ໄດ້: " + up.error.message + " (ຈະບັນທຶກໂດຍບໍ່ມີຮູບ)", "err");
-      } else {
-        payload.photo_url = supa.storage.from('photos').getPublicUrl(path).data.publicUrl;
+    // ອັບໂຫຼດຮູບ (ສູງສຸດ 3) ຂຶ້ນ Supabase Storage bucket 'photos' — ບີບອັດກ່ອນອັບ
+    if (selectedPhotos.length) {
+      const urls = [];
+      for (let i = 0; i < selectedPhotos.length; i++){
+        btn.textContent = `⏳ ກຳລັງອັບຮູບ ${i+1}/${selectedPhotos.length}...`;
+        const blob = await compressImage(selectedPhotos[i]);
+        const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+        const up = await supa.storage.from('photos').upload(path, blob, { cacheControl:'3600', upsert:false, contentType:'image/jpeg' });
+        if (up.error) { console.error(up.error); showToast("ອັບບາງຮູບບໍ່ໄດ້: " + up.error.message, "err"); }
+        else urls.push(supa.storage.from('photos').getPublicUrl(path).data.publicUrl);
       }
+      if (urls.length){ payload.photo_urls = urls; payload.photo_url = urls[0]; }
       btn.textContent = "⏳ ກຳລັງສົ່ງ...";
     }
 
@@ -638,7 +634,9 @@
 
   function afterSubmit(btn, cat){
     document.getElementById('reqForm').reset();
+    selectedPhotos = [];
     document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('photoPreview').innerHTML = '';
     document.getElementById('coordBox').innerHTML = "ຍັງບໍ່ໄດ້ເລືອກຈຸດ — ແຕະເທິງແຜນທີ່ ຫຼື ກົດ GPS";
     if (pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
     selectedLatLng = null;
@@ -647,22 +645,29 @@
     closePanel();
   }
 
-  /* ຕົວຢ່າງຮູບ (preview) ກ່ອນສົ່ງ */
+  /* ຮູບພາບ — ຮອງຮັບສູງສຸດ 3 ຮູບ */
+  let selectedPhotos = [];
+  const MAX_PHOTOS = 3;
   document.getElementById('photo').addEventListener('change', (e) => {
-    const file = e.target.files[0];
+    const files = Array.from(e.target.files);
+    if (files.length > MAX_PHOTOS) showToast(`ໃສ່ໄດ້ສູງສຸດ ${MAX_PHOTOS} ຮູບ — ເອົາ ${MAX_PHOTOS} ຮູບທຳອິດ`, "err");
+    selectedPhotos = files.slice(0, MAX_PHOTOS);
+    renderPhotoPreview();
+  });
+  function renderPhotoPreview(){
     const prev = document.getElementById('photoPreview');
-    const img = document.getElementById('photoImg');
-    if (file){
-      img.src = URL.createObjectURL(file);
-      prev.style.display = 'block';
-    } else {
-      prev.style.display = 'none';
-    }
-  });
-  document.getElementById('photoClear').addEventListener('click', () => {
-    document.getElementById('photo').value = '';
-    document.getElementById('photoPreview').style.display = 'none';
-  });
+    if (!selectedPhotos.length){ prev.style.display='none'; prev.innerHTML=''; return; }
+    prev.style.display = 'flex';
+    prev.innerHTML = selectedPhotos.map((f,i)=>`
+      <div style="position:relative;">
+        <img src="${URL.createObjectURL(f)}" style="width:84px;height:84px;object-fit:cover;border-radius:8px;display:block;" />
+        <button type="button" data-i="${i}" class="photo-del" style="position:absolute;top:-6px;right:-6px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;line-height:1;">×</button>
+      </div>`).join('');
+    prev.querySelectorAll('.photo-del').forEach(b => b.addEventListener('click', () => {
+      selectedPhotos.splice(Number(b.dataset.i), 1);
+      renderPhotoPreview();
+    }));
+  }
 
   /* ບີບອັດ/ຫຍໍ້ຮູບ ຢູ່ browser ກ່ອນອັບ (ປະຢັດພື້ນທີ່ + ອັບໄວ) */
   async function compressImage(file, maxDim = 1600, quality = 0.7){
@@ -766,12 +771,20 @@
       href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">🗺️ ນຳທາງໄປຫາໝຸດ</a>`;
   }
 
-  /* ຮູບພາບໃນ popup (ຖ້າມີ) */
+  /* ຮູບພາບໃນ popup (ຮອງຮັບຫຼາຍຮູບ) */
   function photoHtml(r){
-    if (!r.photo_url) return "";
-    const u = encodeURI(r.photo_url);
-    return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="ຮູບ"
-      style="width:100%;border-radius:8px;margin-top:8px;max-height:150px;object-fit:cover;display:block;" /></a>`;
+    let urls = Array.isArray(r.photo_urls) ? r.photo_urls.filter(Boolean) : [];
+    if (!urls.length && r.photo_url) urls = [r.photo_url];
+    if (!urls.length) return "";
+    if (urls.length === 1){
+      const u = encodeURI(urls[0]);
+      return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="ຮູບ"
+        style="width:100%;border-radius:8px;margin-top:8px;max-height:150px;object-fit:cover;display:block;" /></a>`;
+    }
+    return `<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">` +
+      urls.map(u => { const e = encodeURI(u); return `<a href="${e}" target="_blank" rel="noopener"><img src="${e}"
+        style="width:76px;height:76px;object-fit:cover;border-radius:6px;display:block;" /></a>`; }).join('') +
+      `</div>`;
   }
 
   /* ໝຸດ "ຈຸດບໍລິການ" (ຮູບສີ່ຫຼ່ຽມ + emoji) */

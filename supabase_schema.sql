@@ -25,6 +25,7 @@ create table if not exists public.requests (
 -- ຖ້າເຄີຍສ້າງຕາຕະລາງແລ້ວ ໃຫ້ເພີ່ມ column ໃໝ່ (category ສຳລັບ facility/hazard, photo_url ສຳລັບຮູບ):
 alter table public.requests add column if not exists category text default 'request';
 alter table public.requests add column if not exists photo_url text;
+alter table public.requests add column if not exists photo_urls text[];   -- ຮອງຮັບຫຼາຍຮູບ (ສູງສຸດ 3)
 -- ໝາຍເຫດ: help_type ຮັບຄ່າ hazard ໄດ້ເລີຍ (road_blocked/flood_high/landslide) ບໍ່ຕ້ອງແກ້ column
 
 -- ດັດຊະນີ (index) ຊ່ວຍໃຫ້ດຶງຂໍ້ມູນລ່າສຸດໄວຂຶ້ນ
