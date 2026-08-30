@@ -185,22 +185,22 @@
       100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}
     }
 
-    /* Filter bar (chips) */
+    /* Filter bar (chips) — ຈັດເປັນ 2 ແຖວ ໂດຍບໍ່ກະທົບ marker ເກົ່າ */
     .filterbar{
       position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1001;
-      display:flex;gap:7px;max-width:94vw;overflow-x:auto;padding:6px;background:rgba(255,255,255,.92);
-      border-radius:40px;box-shadow:var(--shadow);backdrop-filter:blur(4px);-webkit-overflow-scrolling:touch;
+      display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;
+      width:min(680px,94vw);padding:7px;background:rgba(255,255,255,.92);
+      border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(4px);
     }
-    .filterbar::-webkit-scrollbar{display:none;}
     .chip{
-      flex:0 0 auto;padding:7px 13px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
+      min-width:0;padding:7px 8px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
       font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
+      overflow:hidden;text-overflow:ellipsis;
     }
     .chip.active{background:#1d6fb8;color:#fff;}
-    /* ໃນຈໍໂທລະສັບ: ຕັດເປັນຫຼາຍແຖວ (ບໍ່ຕ້ອງເລື່ອນ) */
     @media (max-width:640px){
-      .filterbar{flex-wrap:wrap;justify-content:center;overflow-x:visible;border-radius:16px;max-width:96vw;padding:7px 8px;}
-      .chip{font-size:12px;padding:6px 11px;}
+      .filterbar{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:min(320px,92vw);top:8px;padding:6px;border-radius:14px;}
+      .chip{font-size:12px;padding:6px 7px;}
     }
 
     .config-warn{
@@ -236,7 +236,7 @@
   <div class="layout">
     <div id="map"></div>
 
-    <!-- Filter bar (chips) -->
+    <!-- Filter bar (2 rows) -->
     <div class="filterbar" id="filterbar">
       <button class="chip active" data-f="all">ທັງໝົດ</button>
       <button class="chip" data-f="request">🆘 ຄຳຮ້ອງ</button>
@@ -1085,9 +1085,9 @@
   document.getElementById('openFormBtn').addEventListener('click', openPanel);
   document.getElementById('closeBtn').addEventListener('click', closePanel);
 
-  /* ============================================================
-     9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
-     ============================================================ */
+   /* ============================================================
+      9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
+      ============================================================ */
   function syncChips(){
     document.querySelectorAll('.filterbar .chip').forEach(chip => {
       chip.classList.toggle('active', chip.dataset.f === activeFilter);
