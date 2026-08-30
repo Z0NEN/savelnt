@@ -444,25 +444,25 @@
   const map = L.map('map', { zoomControl: true }).setView([17.9757, 102.6331], 12);
   map.zoomControl.setPosition('topleft');   // ຍ້າຍປຸ່ມ zoom ໄປຊ້າຍເທິງ
 
-  // ຮູບແບບແຜນທີ່ (ເລືອກໄດ້)
-  const baseStreet = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
-    maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap, &copy; CARTO'
-  });
-  const baseSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19, attribution: '&copy; Esri World Imagery'
-  });
-  const satLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png', {
-    maxZoom: 20, subdomains: 'abcd', attribution: '&copy; CARTO'
-  });
+  // ຮູບແບບແຜນທີ່ (ຟຣີ ບໍ່ຕ້ອງ API key)
   const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '&copy; OpenStreetMap'
   });
-  baseStreet.addTo(map);   // ຄ່າເລີ່ມຕົ້ນ = ແຜນທີ່ສະອາດ
+  const baseHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap France, HOT'
+  });
+  const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: '&copy; Esri World Imagery'
+  });
+  const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: '&copy; Esri'
+  });
+  baseOSM.addTo(map);   // ຄ່າເລີ່ມຕົ້ນ = OSM
 
   // ດາວທຽມ + ປ້າຍຊື່ (hybrid) ເປັນກຸ່ມດຽວ
-  const satHybrid = L.layerGroup([baseSat, satLabels]);
+  const satHybrid = L.layerGroup([esriSat, esriLabels]);
   L.control.layers(
-    { 'ແຜນທີ່': baseStreet, 'ດາວທຽມ': satHybrid, 'OSM': baseOSM },
+    { 'ແຜນທີ່ (OSM)': baseOSM, 'ແຜນທີ່ໄພພິບັດ (HOT)': baseHOT, 'ດາວທຽມ': satHybrid },
     null,
     { position: 'topright', collapsed: true }
   ).addTo(map);
