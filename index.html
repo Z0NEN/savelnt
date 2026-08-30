@@ -401,13 +401,30 @@
      3) ສ້າງແຜນທີ່ Leaflet (ຕັ້ງຕົ້ນທີ່ ນະຄອນຫຼວງວຽງຈັນ)
      ============================================================ */
   const map = L.map('map', { zoomControl: true }).setView([17.9757, 102.6331], 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+  map.zoomControl.setPosition('topleft');   // ຍ້າຍປຸ່ມ zoom ໄປຊ້າຍເທິງ
 
-  // ຍ້າຍປຸ່ມ zoom ໄປຊ້າຍເທິງ
-  map.zoomControl.setPosition('topleft');
+  // ຮູບແບບແຜນທີ່ (ເລືອກໄດ້)
+  const baseStreet = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+    maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap, &copy; CARTO'
+  });
+  const baseSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: '&copy; Esri World Imagery'
+  });
+  const satLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png', {
+    maxZoom: 20, subdomains: 'abcd', attribution: '&copy; CARTO'
+  });
+  const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap'
+  });
+  baseStreet.addTo(map);   // ຄ່າເລີ່ມຕົ້ນ = ແຜນທີ່ສະອາດ
+
+  // ດາວທຽມ + ປ້າຍຊື່ (hybrid) ເປັນກຸ່ມດຽວ
+  const satHybrid = L.layerGroup([baseSat, satLabels]);
+  L.control.layers(
+    { 'ແຜນທີ່': baseStreet, 'ດາວທຽມ': satHybrid, 'OSM': baseOSM },
+    null,
+    { position: 'topright', collapsed: true }
+  ).addTo(map);
 
   const markersLayer = L.layerGroup().addTo(map);   // ໝຸດຈາກຖານຂໍ້ມູນ
   let selectedLatLng = null;                         // ຈຸດທີ່ຜູ້ໃຊ້ເລືອກ
