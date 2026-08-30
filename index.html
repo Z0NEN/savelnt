@@ -185,22 +185,24 @@
       100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}
     }
 
-    /* Filter bar (chips) */
+    /* Filter bar (Dropdown) */
     .filterbar{
       position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1001;
-      display:flex;gap:7px;max-width:94vw;overflow-x:auto;padding:6px;background:rgba(255,255,255,.92);
-      border-radius:40px;box-shadow:var(--shadow);backdrop-filter:blur(4px);-webkit-overflow-scrolling:touch;
+      width:min(300px,94vw);padding:6px;background:rgba(255,255,255,.92);
+      border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(4px);
     }
-    .filterbar::-webkit-scrollbar{display:none;}
-    .chip{
-      flex:0 0 auto;padding:7px 13px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
-      font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
+    .filter-select{
+      display:block;width:100%;padding:9px 36px 9px 13px;border:1px solid #d4d8dd;border-radius:11px;
+      background:#fff;color:var(--text);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
+      appearance:none;-webkit-appearance:none;
+      background-image:linear-gradient(45deg,transparent 50%,#6b7280 50%),linear-gradient(135deg,#6b7280 50%,transparent 50%);
+      background-position:calc(100% - 18px) 50%,calc(100% - 12px) 50%;
+      background-size:6px 6px,6px 6px;background-repeat:no-repeat;
     }
-    .chip.active{background:#1d6fb8;color:#fff;}
-    /* ໃນຈໍໂທລະສັບ: ຕັດເປັນຫຼາຍແຖວ (ບໍ່ຕ້ອງເລື່ອນ) */
+    .filter-select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,111,184,.14);}
     @media (max-width:640px){
-      .filterbar{flex-wrap:wrap;justify-content:center;overflow-x:visible;border-radius:16px;max-width:96vw;padding:7px 8px;}
-      .chip{font-size:12px;padding:6px 11px;}
+      .filterbar{top:8px;width:min(280px,92vw);padding:5px;border-radius:14px;}
+      .filter-select{font-size:12.5px;padding:8px 34px 8px 11px;}
     }
 
     .config-warn{
@@ -236,18 +238,20 @@
   <div class="layout">
     <div id="map"></div>
 
-    <!-- Filter bar (chips) -->
+    <!-- Filter bar (Dropdown) -->
     <div class="filterbar" id="filterbar">
-      <button class="chip active" data-f="all">ທັງໝົດ</button>
-      <button class="chip" data-f="request">🆘 ຄຳຮ້ອງ</button>
-      <button class="chip" data-f="shelter">🏠 ພັກພິງ</button>
-      <button class="chip" data-f="food_dist">🍚 ອາຫານ</button>
-      <button class="chip" data-f="drink_water">🚰 ນ້ຳດື່ມ</button>
-      <button class="chip" data-f="util_water">💧 ນ້ຳໃຊ້</button>
-      <button class="chip" data-f="relief_station">⛑️ ປະຈຳການ</button>
-      <button class="chip" data-f="road_blocked">🚧 ທາງປິດ</button>
-      <button class="chip" data-f="flood_high">🌊 ນ້ຳສູງ</button>
-      <button class="chip" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
+      <select class="filter-select" id="filterSelect" aria-label="ເລືອກປະເພດຈຸດເທິງແຜນທີ່">
+        <option value="all">ທັງໝົດ</option>
+        <option value="request">🆘 ຄຳຮ້ອງ</option>
+        <option value="shelter">🏠 ພັກພິງ</option>
+        <option value="food_dist">🍚 ອາຫານ</option>
+        <option value="drink_water">🚰 ນ້ຳດື່ມ</option>
+        <option value="util_water">💧 ນ້ຳໃຊ້</option>
+        <option value="relief_station">⛑️ ປະຈຳການ</option>
+        <option value="road_blocked">🚧 ທາງປິດ</option>
+        <option value="flood_high">🌊 ນ້ຳສູງ</option>
+        <option value="landslide">⛰️ ດິນເຈື່ອນ</option>
+      </select>
     </div>
 
     <!-- Legend (desktop) -->
@@ -1085,22 +1089,21 @@
   document.getElementById('openFormBtn').addEventListener('click', openPanel);
   document.getElementById('closeBtn').addEventListener('click', closePanel);
 
-  /* ============================================================
-     9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
-     ============================================================ */
-  function syncChips(){
-    document.querySelectorAll('.filterbar .chip').forEach(chip => {
-      chip.classList.toggle('active', chip.dataset.f === activeFilter);
-    });
+   /* ============================================================
+      9) Filter Dropdown — ເລືອກ = ສະແດງສະເພາະປະເພດນັ້ນ (single-select)
+      ============================================================ */
+  const filterSelect = document.getElementById('filterSelect');
+  function syncFilterSelect(){
+    if (filterSelect) filterSelect.value = activeFilter;
   }
-  document.querySelectorAll('.filterbar .chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      activeFilter = chip.dataset.f;   // ເລືອກປະເພດທີ່ກົດ ('all' = ໝົດ)
-      syncChips();
+  if (filterSelect){
+    filterSelect.addEventListener('change', () => {
+      activeFilter = filterSelect.value;   // 'all' = ສະແດງທັງໝົດ
+      syncFilterSelect();
       renderMarkers();
     });
-  });
-  syncChips();
+  }
+  syncFilterSelect();
 
   /* ============================================================
      10) ກວດສະຖານະ login (ແບ່ງໃຊ້ session ດຽວກັນກັບ admin.html)
