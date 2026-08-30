@@ -153,6 +153,10 @@
       margin-top:9px;padding:8px;border-radius:9px;background:#eaf7f4;color:#1d7a6e;
       font-size:12.5px;font-weight:700;text-align:center;
     }
+    /* ປ້າຍສະຖານະ (ຊ່ວຍແລ້ວ / ຍັງ) */
+    .popup-state{display:block;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:800;margin:2px 0 7px;text-align:center;}
+    .popup-state.pending{background:#fdecea;color:#c0392b;border:1px solid #f5b7b1;}
+    .popup-state.helped{background:#e7f7ee;color:#12813f;border:1px solid #a7e0bf;}
 
     /* Segmented control (ເລືອກປະເພດການປັກໝຸດ) */
     .seg{display:flex;gap:6px;margin-top:4px;}
@@ -740,19 +744,22 @@
     const detailHtml = r.details
       ? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
 
-    let statusHtml = "";
-    if (helped) {
-      statusHtml = `<div class="popup-status done">✅ ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ</div>`;
-    } else if (r.id) {
-      // ໃຫ້ທຸກຄົນກົດໄດ້ (ຜູ້ໄປຊ່ວຍ ຫຼື ຜູ້ແຈ້ງເອງ)
-      statusHtml = `<button class="popup-btn" onclick="markHelped('${r.id}', this)">✅ ໄດ້ຊ່ວຍເຫຼືອແລ້ວ</button>
+    // ປ້າຍສະຖານະ (ຊັດເຈນ)
+    const stateHtml = helped
+      ? `<div class="popup-state helped">✅ ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ</div>`
+      : `<div class="popup-state pending">⏳ ຍັງບໍ່ໄດ້ຮັບການຊ່ວຍເຫຼືອ</div>`;
+    // ປຸ່ມກົດ (ສະເພາະທີ່ຍັງບໍ່ໄດ້ຊ່ວຍ) — ໃຫ້ທຸກຄົນກົດໄດ້
+    let actionHtml = "";
+    if (!helped && r.id) {
+      actionHtml = `<button class="popup-btn" onclick="markHelped('${r.id}', this)">✅ ໝາຍວ່າ ໄດ້ຊ່ວຍແລ້ວ</button>
         <div style="font-size:10.5px;color:#888;text-align:center;margin-top:3px;">ກົດໄດ້ໂດຍ ຜູ້ໄປຊ່ວຍ ຫຼື ຜູ້ແຈ້ງເອງ</div>`;
     }
     const navHtml = navButton(r.lat, r.lng);
 
     marker.bindPopup(`
       <div class="popup-title">${escapeHtml(r.name || 'ບໍ່ລະບຸຊື່')}</div>
-      <span class="popup-badge" style="background:${color}">${helped ? 'ຊ່ວຍແລ້ວ · ' : ''}${t.label}</span>
+      <span class="popup-badge" style="background:${color}">${t.label}</span>
+      ${stateHtml}
       ${phoneHtml}
       <div class="popup-row"><b>👥 ຈຳນວນຄົນ:</b> ${r.people_count || 0} ຄົນ</div>
       ${bedHtml}
@@ -760,7 +767,7 @@
       ${photoHtml(r)}
       <div class="popup-time">🕒 ແຈ້ງເຫດເມື່ອ: ${time}</div>
       ${navHtml}
-      ${statusHtml}
+      ${actionHtml}
     `);
     marker.addTo(markersLayer);
   }
