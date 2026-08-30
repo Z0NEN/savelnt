@@ -66,9 +66,9 @@ create policy "anyone can update status"
   using (true)
   with check (true);
 
--- ຈຳກັດສິດ column: anon ແກ້ໄດ້ສະເພາະ status (admin/authenticated ຍັງແກ້ໄດ້ທຸກ column)
-revoke update on public.requests from anon;
-grant update (status) on public.requests to anon;
+-- ໃຫ້ທຸກຄົນ (anon) ແກ້ໄຂໄດ້ທຸກ column (ຈຸດບໍລິການ/ອັນຕະລາຍ ແລະ ໝາຍສະຖານະ)
+-- ໝາຍເຫດ: ການລົບ (DELETE) ຍັງເປັນ admin ເທົ່ານັ້ນ
+grant update on public.requests to anon;
 
 -- ອະນຸຍາດ DELETE ສະເພາະ admin ທີ່ login ແລ້ວ
 drop policy if exists "admin can delete requests" on public.requests;

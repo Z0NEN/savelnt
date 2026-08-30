@@ -143,7 +143,7 @@
     .popup-row{font-size:12.5px;margin:2px 0;color:#333;}
     .popup-row b{color:#111;}
     .popup-time{font-size:11px;color:var(--muted);margin-top:6px;}
-    .leaflet-popup-content{margin:12px 14px;min-width:190px;}
+    .leaflet-popup-content{margin:12px 14px;min-width:190px;max-height:60vh;overflow-y:auto;}
     .popup-btn{
       display:block;width:100%;margin-top:9px;padding:9px;border:none;border-radius:9px;
       background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
@@ -197,6 +197,11 @@
       font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
     }
     .chip.active{background:#1d6fb8;color:#fff;}
+    /* ໃນຈໍໂທລະສັບ: ຕັດເປັນຫຼາຍແຖວ (ບໍ່ຕ້ອງເລື່ອນ) */
+    @media (max-width:640px){
+      .filterbar{flex-wrap:wrap;justify-content:center;overflow-x:visible;border-radius:16px;max-width:96vw;padding:7px 8px;}
+      .chip{font-size:12px;padding:6px 11px;}
+    }
 
     .config-warn{
       background:#fff3cd;border:1px solid #ffe08a;color:#8a6d00;font-size:12px;
@@ -953,11 +958,18 @@
 
   /* ===== ແກ້ໄຂ / ລົບ (ສະເພາະ admin ທີ່ login) ===== */
   function adminButtons(r){
-    if (!isAdmin || !r.id) return '';
-    return `<div style="display:flex;gap:6px;margin-top:8px;">
-      <button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>
-      <button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>
-    </div>`;
+    if (!r.id) return '';
+    const cat = r.category || 'request';
+    let btns = '';
+    // ແກ້ໄຂ: ຈຸດບໍລິການ/ອັນຕະລາຍ = ທຸກຄົນ; ຄຳຮ້ອງ SOS = admin ເທົ່ານັ້ນ
+    if (cat !== 'request' || isAdmin) {
+      btns += `<button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>`;
+    }
+    // ລົບ: admin ເທົ່ານັ້ນ
+    if (isAdmin) {
+      btns += `<button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>`;
+    }
+    return btns ? `<div style="display:flex;gap:6px;margin-top:8px;">${btns}</div>` : '';
   }
   const _editModal = document.getElementById('editModal');
   function _typeOptions(cat, selected){
@@ -1000,7 +1012,7 @@
     const b = document.getElementById('eSave'); b.disabled = true; b.textContent = '⏳ ກຳລັງບັນທຶກ...';
     const { error } = await supa.from('requests').update(patch).eq('id', id);
     b.disabled = false; b.textContent = '💾 ບັນທຶກ';
-    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message + " (ຕ້ອງ login admin)", "err"); return; }
+    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message, "err"); return; }
     showToast("ບັນທຶກແລ້ວ ✓", "ok");
     _editModal.style.display = 'none';
     loadRequests();
