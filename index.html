@@ -403,7 +403,7 @@
 
   /* ສ້າງໄອຄອນໝຸດສີ (ໃຊ້ divIcon) */
   function makeIcon(color, emoji, count, done=false){
-    const c = done ? '#8a94a6' : color;
+    const c = done ? '#16a34a' : color;   // ຊ່ວຍແລ້ວ = ສີຂຽວ
     const head = done
       ? `<span style="color:#fff;font-weight:900;font-size:17px;">✓</span>`
       : `<span style="font-size:18px;line-height:1;">${emoji || ''}</span>`;
@@ -704,7 +704,7 @@
   function addRequestMarker(r){
     const t = HELP_TYPES[r.help_type] || HELP_TYPES.other;
     const helped = (r.status === 'helped');
-    const color = helped ? '#8a94a6' : t.color;      // ຊ່ວຍແລ້ວ = ສີເທົາ
+    const color = helped ? '#16a34a' : t.color;      // ຊ່ວຍແລ້ວ = ສີຂຽວ
     const marker = L.marker([r.lat, r.lng], { icon: makeIcon(t.color, t.emoji, r.people_count || 0, helped) });
     const time = formatTime(r.created_at);
     const phoneHtml = r.phone
