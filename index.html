@@ -1,1137 +1,1147 @@
 <!DOCTYPE html>
 <html lang="lo">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>ແຈ້ງເຫດຂໍຄວາມຊ່ວຍເຫຼືອ - ໄພນ້ຳຖ້ວມ</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ແຈ້ງເຫດຂໍຄວາມຊ່ວຍເຫຼືອ - ໄພນ້ຳຖ້ວມ</title>
 
-<!-- ຟ້ອນ Noto Sans Lao -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- ຟ້ອນ Noto Sans Lao -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-<!-- Leaflet (OpenStreetMap) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <!-- Leaflet (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-<!-- Supabase JS SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-:root{
---red:#e63946; --orange:#f4a261; --green:#2a9d8f; --gray:#6c757d;
---blue:#1d6fb8; --bg:#f4f6f8; --card:#ffffff; --text:#1f2933; --muted:#6b7280;
---shadow:0 4px 18px rgba(0,0,0,.12);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;padding:0;height:100%;font-family:'Noto Sans Lao','Phetsarath OT',system-ui,sans-serif;background:var(--bg);color:var(--text);}
-body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
+  <style>
+    :root{
+      --red:#e63946; --orange:#f4a261; --green:#2a9d8f; --gray:#6c757d;
+      --blue:#1d6fb8; --bg:#f4f6f8; --card:#ffffff; --text:#1f2933; --muted:#6b7280;
+      --shadow:0 4px 18px rgba(0,0,0,.12);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{margin:0;padding:0;height:100%;font-family:'Noto Sans Lao','Phetsarath OT',system-ui,sans-serif;background:var(--bg);color:var(--text);}
+    body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
 
-header{
-background:linear-gradient(135deg,#1d6fb8,#2a9d8f);color:#fff;
-padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);z-index:1000;
-}
-header .logo{font-size:24px;}
-header h1{font-size:17px;margin:0;font-weight:700;line-height:1.2;}
-header p{margin:0;font-size:12px;opacity:.9;}
-.admin-link{
-margin-left:auto;color:#fff;text-decoration:none;font-size:13px;font-weight:700;
-background:rgba(255,255,255,.18);padding:8px 12px;border-radius:20px;white-space:nowrap;
-}
-.admin-link:active{background:rgba(255,255,255,.3);}
+    header{
+      background:linear-gradient(135deg,#1d6fb8,#2a9d8f);color:#fff;
+      padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);z-index:1000;
+    }
+    header .logo{font-size:24px;}
+    header h1{font-size:17px;margin:0;font-weight:700;line-height:1.2;}
+    header p{margin:0;font-size:12px;opacity:.9;}
+    .admin-link{
+      margin-left:auto;color:#fff;text-decoration:none;font-size:13px;font-weight:700;
+      background:rgba(255,255,255,.18);padding:8px 12px;border-radius:20px;white-space:nowrap;
+    }
+    .admin-link:active{background:rgba(255,255,255,.3);}
 
-.layout{flex:1;display:flex;min-height:0;position:relative;}
-#map{flex:1;height:100%;width:100%;z-index:1;}
+    .layout{flex:1;display:flex;min-height:0;position:relative;}
+    #map{flex:1;height:100%;width:100%;z-index:1;}
 
-/* Panel / Form */
-.panel{
-width:380px;max-width:88vw;background:var(--card);overflow-y:auto;
-box-shadow:var(--shadow);z-index:1002;display:flex;flex-direction:column;
-transition:transform .3s ease;
-}
-.panel-inner{padding:16px;}
-.panel h2{font-size:16px;margin:0 0 4px;}
-.hint{font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;}
+    /* Panel / Form */
+    .panel{
+      width:380px;max-width:88vw;background:var(--card);overflow-y:auto;
+      box-shadow:var(--shadow);z-index:1002;display:flex;flex-direction:column;
+      transition:transform .3s ease;
+    }
+    .panel-inner{padding:16px;}
+    .panel h2{font-size:16px;margin:0 0 4px;}
+    .hint{font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;}
 
-label{display:block;font-size:13.5px;font-weight:600;margin:12px 0 5px;}
-input,select,textarea{
-width:100%;padding:11px 12px;border:1px solid #d4d8dd;border-radius:10px;
-font-size:14px;font-family:inherit;background:#fbfcfd;color:var(--text);
-}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);background:#fff;}
-textarea{resize:vertical;min-height:66px;}
-.row2{display:flex;gap:10px;}
-.row2>div{flex:1;}
+    label{display:block;font-size:13.5px;font-weight:600;margin:12px 0 5px;}
+    input,select,textarea{
+      width:100%;padding:11px 12px;border:1px solid #d4d8dd;border-radius:10px;
+      font-size:14px;font-family:inherit;background:#fbfcfd;color:var(--text);
+    }
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);background:#fff;}
+    textarea{resize:vertical;min-height:66px;}
+    .row2{display:flex;gap:10px;}
+    .row2>div{flex:1;}
 
-.coord-box{
-display:flex;align-items:center;gap:8px;background:#eef4fb;border:1px dashed #9fc0e0;
-border-radius:10px;padding:10px 12px;font-size:13px;margin-top:6px;color:#245b8c;
-}
-.coord-box b{font-weight:700;}
+    .coord-box{
+      display:flex;align-items:center;gap:8px;background:#eef4fb;border:1px dashed #9fc0e0;
+      border-radius:10px;padding:10px 12px;font-size:13px;margin-top:6px;color:#245b8c;
+    }
+    .coord-box b{font-weight:700;}
 
-.btn{
-display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
-padding:13px;border:none;border-radius:12px;font-size:15px;font-weight:700;
-font-family:inherit;cursor:pointer;margin-top:10px;transition:.15s;
-}
-.btn:active{transform:scale(.98);}
-.btn-gps{background:#eaf3ff;color:#1d6fb8;border:1px solid #bcd8f5;margin-top:6px;}
-.btn-submit{background:var(--red);color:#fff;box-shadow:0 4px 12px rgba(230,57,70,.35);}
-.btn-submit:disabled{opacity:.6;cursor:not-allowed;}
+    .btn{
+      display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+      padding:13px;border:none;border-radius:12px;font-size:15px;font-weight:700;
+      font-family:inherit;cursor:pointer;margin-top:10px;transition:.15s;
+    }
+    .btn:active{transform:scale(.98);}
+    .btn-gps{background:#eaf3ff;color:#1d6fb8;border:1px solid #bcd8f5;margin-top:6px;}
+    .btn-submit{background:var(--red);color:#fff;box-shadow:0 4px 12px rgba(230,57,70,.35);}
+    .btn-submit:disabled{opacity:.6;cursor:not-allowed;}
 
-/* Legend */
-.legend{
-background:var(--card);border-radius:12px;box-shadow:var(--shadow);
-padding:10px 12px;font-size:12.5px;line-height:1.9;
-}
-.legend .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);}
+    /* Legend */
+    .legend{
+      background:var(--card);border-radius:12px;box-shadow:var(--shadow);
+      padding:10px 12px;font-size:12.5px;line-height:1.9;
+    }
+    .legend .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);}
 
-/* Floating controls over map (mobile) */
-.fab-wrap{position:absolute;right:12px;bottom:20px;z-index:1001;display:flex;flex-direction:column;gap:10px;align-items:flex-end;}
-.fab{
-background:var(--red);color:#fff;border:none;border-radius:50px;padding:14px 20px;
-font-size:15px;font-weight:700;font-family:inherit;box-shadow:var(--shadow);cursor:pointer;
-display:flex;align-items:center;gap:8px;
-}
-.fab.count{background:#fff;color:var(--text);font-size:13px;padding:9px 14px;}
-/* ປຸ່ມ GPS ໄປຫາຕຳແໜ່ງຂ້ອຍ */
-.fab.gps{background:#fff;color:#1d6fb8;font-size:22px;width:50px;height:50px;padding:0;
-border-radius:50%;justify-content:center;align-items:center;}
-/* ປຸ່ມ "ແຈ້ງເຫດ" ໃຫຍ່ ເດັ່ນ ກົດງ່າຍ */
-.fab.add{
-font-size:19px;padding:18px 32px;font-weight:800;letter-spacing:.3px;
-box-shadow:0 8px 24px rgba(230,57,70,.55);
-animation:fabPulse 1.8s infinite;
-}
-@keyframes fabPulse{
-0%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 0 rgba(230,57,70,.55);}
-70%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 20px rgba(230,57,70,0);}
-100%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 0 rgba(230,57,70,0);}
-}
+    /* Floating controls over map (mobile) */
+    .fab-wrap{position:absolute;right:12px;bottom:20px;z-index:1001;display:flex;flex-direction:column;gap:10px;align-items:flex-end;}
+    .fab{
+      background:var(--red);color:#fff;border:none;border-radius:50px;padding:14px 20px;
+      font-size:15px;font-weight:700;font-family:inherit;box-shadow:var(--shadow);cursor:pointer;
+      display:flex;align-items:center;gap:8px;
+    }
+    .fab.count{background:#fff;color:var(--text);font-size:13px;padding:9px 14px;}
+    /* ປຸ່ມ GPS ໄປຫາຕຳແໜ່ງຂ້ອຍ */
+    .fab.gps{background:#fff;color:#1d6fb8;font-size:22px;width:50px;height:50px;padding:0;
+      border-radius:50%;justify-content:center;align-items:center;}
+    /* ປຸ່ມ "ແຈ້ງເຫດ" ໃຫຍ່ ເດັ່ນ ກົດງ່າຍ */
+    .fab.add{
+      font-size:19px;padding:18px 32px;font-weight:800;letter-spacing:.3px;
+      box-shadow:0 8px 24px rgba(230,57,70,.55);
+      animation:fabPulse 1.8s infinite;
+    }
+    @keyframes fabPulse{
+      0%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 0 rgba(230,57,70,.55);}
+      70%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 20px rgba(230,57,70,0);}
+      100%{box-shadow:0 8px 24px rgba(230,57,70,.55), 0 0 0 0 rgba(230,57,70,0);}
+    }
 
-.legend-float{position:absolute;left:12px;bottom:60px;z-index:1001;max-width:180px;}
+    .legend-float{position:absolute;left:12px;bottom:60px;z-index:1001;max-width:180px;}
 
-/* Mobile sheet */
-@media (max-width:820px){
-.panel{
-position:absolute;left:0;right:0;bottom:0;top:auto;width:100%;max-width:100%;
-max-height:82vh;border-radius:20px 20px 0 0;transform:translateY(100%);
-}
-.panel.open{transform:translateY(0);}
-.panel .grabber{width:44px;height:5px;background:#d0d5db;border-radius:5px;margin:10px auto 0;}
-.legend-float{display:none;}
-}
-@media (min-width:821px){
-.fab-wrap .fab.add{display:none;}
-}
+    /* Mobile sheet */
+    @media (max-width:820px){
+      .panel{
+        position:absolute;left:0;right:0;bottom:0;top:auto;width:100%;max-width:100%;
+        max-height:82vh;border-radius:20px 20px 0 0;transform:translateY(100%);
+      }
+      .panel.open{transform:translateY(0);}
+      .panel .grabber{width:44px;height:5px;background:#d0d5db;border-radius:5px;margin:10px auto 0;}
+      .legend-float{display:none;}
+    }
+    @media (min-width:821px){
+      .fab-wrap .fab.add{display:none;}
+    }
 
-.close-x{position:absolute;top:12px;right:14px;background:none;border:none;font-size:24px;color:var(--muted);cursor:pointer;line-height:1;}
+    .close-x{position:absolute;top:12px;right:14px;background:none;border:none;font-size:24px;color:var(--muted);cursor:pointer;line-height:1;}
 
-/* Toast */
-.toast{
-position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);
-background:#1f2933;color:#fff;padding:13px 20px;border-radius:12px;font-size:14px;
-z-index:3000;box-shadow:var(--shadow);transition:.35s;max-width:90vw;text-align:center;
-}
-.toast.show{transform:translateX(-50%) translateY(0);}
-.toast.err{background:var(--red);}
-.toast.ok{background:var(--green);}
+    /* Toast */
+    .toast{
+      position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);
+      background:#1f2933;color:#fff;padding:13px 20px;border-radius:12px;font-size:14px;
+      z-index:3000;box-shadow:var(--shadow);transition:.35s;max-width:90vw;text-align:center;
+    }
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    .toast.err{background:var(--red);}
+    .toast.ok{background:var(--green);}
 
-/* Leaflet popup */
-.popup-title{font-weight:700;font-size:14px;margin-bottom:4px;}
-.popup-badge{display:inline-block;color:#fff;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;margin-bottom:6px;}
-.popup-row{font-size:12.5px;margin:2px 0;color:#333;}
-.popup-row b{color:#111;}
-.popup-time{font-size:11px;color:var(--muted);margin-top:6px;}
-.leaflet-popup-content{margin:12px 14px;min-width:190px;}
-.popup-btn{
-display:block;width:100%;margin-top:9px;padding:9px;border:none;border-radius:9px;
-background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
-text-align:center;text-decoration:none;box-sizing:border-box;
-}
-.popup-btn:active{transform:scale(.98);}
-.popup-btn:disabled{opacity:.6;cursor:not-allowed;}
-a.popup-btn.nav{background:var(--blue);color:#fff;}
-.popup-btn.undo{background:#8a94a6;}
-.popup-status.done{
-margin-top:9px;padding:8px;border-radius:9px;background:#eaf7f4;color:#1d7a6e;
-font-size:12.5px;font-weight:700;text-align:center;
-}
-/* ປ້າຍສະຖານະ (ຊ່ວຍແລ້ວ / ຍັງ) */
-.popup-state{display:block;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:800;margin:2px 0 7px;text-align:center;}
-.popup-state.pending{background:#fdecea;color:#c0392b;border:1px solid #f5b7b1;}
-.popup-state.helped{background:#e7f7ee;color:#12813f;border:1px solid #a7e0bf;}
+    /* Leaflet popup */
+    .popup-title{font-weight:700;font-size:14px;margin-bottom:4px;}
+    .popup-badge{display:inline-block;color:#fff;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;margin-bottom:6px;}
+    .popup-row{font-size:12.5px;margin:2px 0;color:#333;}
+    .popup-row b{color:#111;}
+    .popup-time{font-size:11px;color:var(--muted);margin-top:6px;}
+    .leaflet-popup-content{margin:12px 14px;min-width:190px;max-height:60vh;overflow-y:auto;}
+    .popup-btn{
+      display:block;width:100%;margin-top:9px;padding:9px;border:none;border-radius:9px;
+      background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
+      text-align:center;text-decoration:none;box-sizing:border-box;
+    }
+    .popup-btn:active{transform:scale(.98);}
+    .popup-btn:disabled{opacity:.6;cursor:not-allowed;}
+    a.popup-btn.nav{background:var(--blue);color:#fff;}
+    .popup-btn.undo{background:#8a94a6;}
+    .popup-status.done{
+      margin-top:9px;padding:8px;border-radius:9px;background:#eaf7f4;color:#1d7a6e;
+      font-size:12.5px;font-weight:700;text-align:center;
+    }
+    /* ປ້າຍສະຖານະ (ຊ່ວຍແລ້ວ / ຍັງ) */
+    .popup-state{display:block;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:800;margin:2px 0 7px;text-align:center;}
+    .popup-state.pending{background:#fdecea;color:#c0392b;border:1px solid #f5b7b1;}
+    .popup-state.helped{background:#e7f7ee;color:#12813f;border:1px solid #a7e0bf;}
 
-/* Segmented control (ເລືອກປະເພດການປັກໝຸດ) */
-.seg{display:flex;gap:6px;margin-top:4px;}
-.seg-btn{
-flex:1;padding:11px 4px;border:1.5px solid #d4d8dd;border-radius:11px;background:#fbfcfd;
-font-family:inherit;font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer;transition:.15s;white-space:nowrap;
-}
-.seg-btn.active{border-color:var(--blue);background:#eaf3ff;color:#1d6fb8;}
+    /* Segmented control (ເລືອກປະເພດການປັກໝຸດ) */
+    .seg{display:flex;gap:6px;margin-top:4px;}
+    .seg-btn{
+      flex:1;padding:11px 4px;border:1.5px solid #d4d8dd;border-radius:11px;background:#fbfcfd;
+      font-family:inherit;font-size:12.5px;font-weight:700;color:var(--text);cursor:pointer;transition:.15s;white-space:nowrap;
+    }
+    .seg-btn.active{border-color:var(--blue);background:#eaf3ff;color:#1d6fb8;}
 
-.btn-fac{background:var(--blue)!important;box-shadow:0 4px 12px rgba(29,111,184,.35)!important;}
-.btn-haz{background:#d62828!important;box-shadow:0 4px 12px rgba(214,40,40,.35)!important;}
+    .btn-fac{background:var(--blue)!important;box-shadow:0 4px 12px rgba(29,111,184,.35)!important;}
+    .btn-haz{background:#d62828!important;box-shadow:0 4px 12px rgba(214,40,40,.35)!important;}
 
-/* ໝຸດ "ກຳລັງຈະປັກ" (draft) — ຕ່າງຈາກໝຸດຈິງ: ວົງກະພິບ ເສັ້ນຂີດ */
-.pick-pin-inner{
-width:26px;height:26px;border-radius:50%;background:rgba(233,30,99,.25);
-border:3px dashed #e91e63;box-shadow:0 0 0 0 rgba(233,30,99,.55);
-animation:pickPulse 1.2s infinite;
-}
-@keyframes pickPulse{
-0%{box-shadow:0 0 0 0 rgba(233,30,99,.55);}
-70%{box-shadow:0 0 0 16px rgba(233,30,99,0);}
-100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}
-}
+    /* ໝຸດ "ກຳລັງຈະປັກ" (draft) — ຕ່າງຈາກໝຸດຈິງ: ວົງກະພິບ ເສັ້ນຂີດ */
+    .pick-pin-inner{
+      width:26px;height:26px;border-radius:50%;background:rgba(233,30,99,.25);
+      border:3px dashed #e91e63;box-shadow:0 0 0 0 rgba(233,30,99,.55);
+      animation:pickPulse 1.2s infinite;
+    }
+    @keyframes pickPulse{
+      0%{box-shadow:0 0 0 0 rgba(233,30,99,.55);}
+      70%{box-shadow:0 0 0 16px rgba(233,30,99,0);}
+      100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}
+    }
 
-/* Filter bar (chips) */
-.filterbar{
-position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1001;
-display:flex;gap:7px;max-width:94vw;overflow-x:auto;padding:6px;background:rgba(255,255,255,.92);
-border-radius:40px;box-shadow:var(--shadow);backdrop-filter:blur(4px);-webkit-overflow-scrolling:touch;
-}
-.filterbar::-webkit-scrollbar{display:none;}
-.chip{
-flex:0 0 auto;padding:7px 13px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
-font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
-}
-.chip.active{background:#1d6fb8;color:#fff;}
+    /* Filter bar (chips) */
+    .filterbar{
+      position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1001;
+      display:flex;gap:7px;max-width:94vw;overflow-x:auto;padding:6px;background:rgba(255,255,255,.92);
+      border-radius:40px;box-shadow:var(--shadow);backdrop-filter:blur(4px);-webkit-overflow-scrolling:touch;
+    }
+    .filterbar::-webkit-scrollbar{display:none;}
+    .chip{
+      flex:0 0 auto;padding:7px 13px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
+      font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
+    }
+    .chip.active{background:#1d6fb8;color:#fff;}
+    /* ໃນຈໍໂທລະສັບ: ຕັດເປັນຫຼາຍແຖວ (ບໍ່ຕ້ອງເລື່ອນ) */
+    @media (max-width:640px){
+      .filterbar{flex-wrap:wrap;justify-content:center;overflow-x:visible;border-radius:16px;max-width:96vw;padding:7px 8px;}
+      .chip{font-size:12px;padding:6px 11px;}
+    }
 
-.config-warn{
-background:#fff3cd;border:1px solid #ffe08a;color:#8a6d00;font-size:12px;
-padding:10px 12px;border-radius:10px;margin-bottom:12px;line-height:1.5;
-}
+    .config-warn{
+      background:#fff3cd;border:1px solid #ffe08a;color:#8a6d00;font-size:12px;
+      padding:10px 12px;border-radius:10px;margin-bottom:12px;line-height:1.5;
+    }
 
-/* Edit modal (admin) */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;display:flex;align-items:center;justify-content:center;padding:16px;}
-.modal{background:var(--card);border-radius:16px;box-shadow:var(--shadow);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:20px;}
-.modal h3{margin:0 0 12px;font-size:17px;}
-.modal label{display:block;font-size:13px;font-weight:700;margin:10px 0 4px;}
-.modal input,.modal select,.modal textarea{width:100%;padding:10px 12px;border:1px solid #d4d8dd;border-radius:9px;font-size:14px;font-family:inherit;background:#fbfcfd;}
-.modal textarea{min-height:60px;resize:vertical;}
-.modal .mrow2{display:flex;gap:10px;}.modal .mrow2>div{flex:1;}
-.modal-actions{display:flex;gap:10px;margin-top:18px;}
-.modal-actions button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
-.modal-actions .cancel{background:#e9ecef;color:#333;}
-.modal-actions .save{background:var(--green);color:#fff;}
-</style>
+    /* Edit modal (admin) */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;display:flex;align-items:center;justify-content:center;padding:16px;}
+    .modal{background:var(--card);border-radius:16px;box-shadow:var(--shadow);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:20px;}
+    .modal h3{margin:0 0 12px;font-size:17px;}
+    .modal label{display:block;font-size:13px;font-weight:700;margin:10px 0 4px;}
+    .modal input,.modal select,.modal textarea{width:100%;padding:10px 12px;border:1px solid #d4d8dd;border-radius:9px;font-size:14px;font-family:inherit;background:#fbfcfd;}
+    .modal textarea{min-height:60px;resize:vertical;}
+    .modal .mrow2{display:flex;gap:10px;}.modal .mrow2>div{flex:1;}
+    .modal-actions{display:flex;gap:10px;margin-top:18px;}
+    .modal-actions button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
+    .modal-actions .cancel{background:#e9ecef;color:#333;}
+    .modal-actions .save{background:var(--green);color:#fff;}
+  </style>
 </head>
 <body>
 
-<header>
-<span class="logo">🚨</span>
-<div>
-<h1>ແຈ້ງເຫດຂໍຄວາມຊ່ວຍເຫຼືອ</h1>
-<p>ລະບົບປັກໝຸດຜູ້ປະສົບໄພນ້ຳຖ້ວມ</p>
-</div>
-<a href="admin.html" class="admin-link">🛠️ Admin</a>
-</header>
+  <header>
+    <span class="logo">🚨</span>
+    <div>
+      <h1>ແຈ້ງເຫດຂໍຄວາມຊ່ວຍເຫຼືອ</h1>
+      <p>ລະບົບປັກໝຸດຜູ້ປະສົບໄພນ້ຳຖ້ວມ</p>
+    </div>
+    <a href="admin.html" class="admin-link">🛠️ Admin</a>
+  </header>
 
-<div class="layout">
-<div id="map"></div>
+  <div class="layout">
+    <div id="map"></div>
 
-<!-- Filter bar (chips) -->
-<div class="filterbar" id="filterbar">
-<button class="chip active" data-f="all">ທັງໝົດ</button>
-<button class="chip" data-f="request">🆘 ຄຳຮ້ອງ</button>
-<button class="chip" data-f="shelter">🏠 ພັກພິງ</button>
-<button class="chip" data-f="food_dist">🍚 ອາຫານ</button>
-<button class="chip" data-f="drink_water">🚰 ນ້ຳດື່ມ</button>
-<button class="chip" data-f="util_water">💧 ນ້ຳໃຊ້</button>
-<button class="chip" data-f="relief_station">⛑️ ປະຈຳການ</button>
-<button class="chip" data-f="road_blocked">🚧 ທາງປິດ</button>
-<button class="chip" data-f="flood_high">🌊 ນ້ຳສູງ</button>
-<button class="chip" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
-</div>
+    <!-- Filter bar (chips) -->
+    <div class="filterbar" id="filterbar">
+      <button class="chip active" data-f="all">ທັງໝົດ</button>
+      <button class="chip" data-f="request">🆘 ຄຳຮ້ອງ</button>
+      <button class="chip" data-f="shelter">🏠 ພັກພິງ</button>
+      <button class="chip" data-f="food_dist">🍚 ອາຫານ</button>
+      <button class="chip" data-f="drink_water">🚰 ນ້ຳດື່ມ</button>
+      <button class="chip" data-f="util_water">💧 ນ້ຳໃຊ້</button>
+      <button class="chip" data-f="relief_station">⛑️ ປະຈຳການ</button>
+      <button class="chip" data-f="road_blocked">🚧 ທາງປິດ</button>
+      <button class="chip" data-f="flood_high">🌊 ນ້ຳສູງ</button>
+      <button class="chip" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
+    </div>
 
-<!-- Legend (desktop) -->
-<div class="legend-float">
-<div class="legend">
-<div style="font-weight:700;margin-bottom:4px;">🆘 ຄຳຮ້ອງຂໍຊ່ວຍເຫຼືອ</div>
-<div><span class="dot" style="background:var(--red)"></span> ອົບພະຍົບດ່ວນ</div>
-<div><span class="dot" style="background:var(--orange)"></span> ອາຫານ / ນ້ຳດື່ມ</div>
-<div><span class="dot" style="background:var(--green)"></span> ຢາ / ເວຊະພັນ</div>
-<div><span class="dot" style="background:var(--gray)"></span> ອື່ນໆ</div>
-<div style="font-weight:700;margin:6px 0 4px;">📍 ຈຸດບໍລິການ</div>
-<div>🏠 ພັກພິງ &nbsp; 🍚 ອາຫານ</div>
-<div>🚰 ນ້ຳດື່ມ &nbsp; 💧 ນ້ຳໃຊ້</div>
-<div>⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</div>
-<div style="font-weight:700;margin:6px 0 4px;">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</div>
-<div>🚧 ທາງໄປບໍ່ໄດ້ &nbsp; 🌊 ນ້ຳສູງ</div>
-<div>⛰️ ດິນເຈື່ອນ</div>
-</div>
-</div>
+    <!-- Legend (desktop) -->
+    <div class="legend-float">
+      <div class="legend">
+        <div style="font-weight:700;margin-bottom:4px;">🆘 ຄຳຮ້ອງຂໍຊ່ວຍເຫຼືອ</div>
+        <div><span class="dot" style="background:var(--red)"></span> ອົບພະຍົບດ່ວນ</div>
+        <div><span class="dot" style="background:var(--orange)"></span> ອາຫານ / ນ້ຳດື່ມ</div>
+        <div><span class="dot" style="background:var(--green)"></span> ຢາ / ເວຊະພັນ</div>
+        <div><span class="dot" style="background:var(--gray)"></span> ອື່ນໆ</div>
+        <div style="font-weight:700;margin:6px 0 4px;">📍 ຈຸດບໍລິການ</div>
+        <div>🏠 ພັກພິງ &nbsp; 🍚 ອາຫານ</div>
+        <div>🚰 ນ້ຳດື່ມ &nbsp; 💧 ນ້ຳໃຊ້</div>
+        <div>⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</div>
+        <div style="font-weight:700;margin:6px 0 4px;">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</div>
+        <div>🚧 ທາງໄປບໍ່ໄດ້ &nbsp; 🌊 ນ້ຳສູງ</div>
+        <div>⛰️ ດິນເຈື່ອນ</div>
+      </div>
+    </div>
 
-<!-- Floating buttons -->
-<div class="fab-wrap">
-<button class="fab gps" id="locateBtn" title="ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ" aria-label="GPS">
-<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1d6fb8" stroke-width="2.2" stroke-linecap="round">
-<circle cx="12" cy="12" r="3.5"/>
-<line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
-<line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
-</svg>
-</button>
-<div class="fab count" id="countBadge">📍 ໝຸດທັງໝົດ: 0</div>
-<button class="fab add" id="openFormBtn">➕ ແຈ້ງເຫດ</button>
-</div>
+    <!-- Floating buttons -->
+    <div class="fab-wrap">
+      <button class="fab gps" id="locateBtn" title="ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ" aria-label="GPS">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1d6fb8" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3.5"/>
+          <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+        </svg>
+      </button>
+      <div class="fab count" id="countBadge">📍 ໝຸດທັງໝົດ: 0</div>
+      <button class="fab add" id="openFormBtn">➕ ແຈ້ງເຫດ</button>
+    </div>
 
-<!-- Form panel -->
-<aside class="panel" id="panel">
-<div class="grabber"></div>
-<button class="close-x" id="closeBtn">×</button>
-<div class="panel-inner">
-<h2 id="formTitle">📝 ແບບຟອມແຈ້ງເຫດ</h2>
-<p class="hint">ເລືອກປະເພດ → ກົດ <b>ດຶງ GPS</b> ຫຼື <b>ແຕະເທິງແຜນທີ່</b> ເພື່ອເລືອກຈຸດ → ຕື່ມຂໍ້ມູນ → ກົດສົ່ງ.</p>
+    <!-- Form panel -->
+    <aside class="panel" id="panel">
+      <div class="grabber"></div>
+      <button class="close-x" id="closeBtn">×</button>
+      <div class="panel-inner">
+        <h2 id="formTitle">📝 ແບບຟອມແຈ້ງເຫດ</h2>
+        <p class="hint">ເລືອກປະເພດ → ກົດ <b>ດຶງ GPS</b> ຫຼື <b>ແຕະເທິງແຜນທີ່</b> ເພື່ອເລືອກຈຸດ → ຕື່ມຂໍ້ມູນ → ກົດສົ່ງ.</p>
 
-<div id="configWarn" class="config-warn" style="display:none;">
-⚠️ ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ Supabase — ຂໍ້ມູນຈະບໍ່ຖືກບັນທຶກ. ໃຫ້ໃສ່ <b>SUPABASE_URL</b> ແລະ <b>SUPABASE_ANON_KEY</b> ໃນໂຄ້ດກ່ອນ.
-</div>
+        <div id="configWarn" class="config-warn" style="display:none;">
+          ⚠️ ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ Supabase — ຂໍ້ມູນຈະບໍ່ຖືກບັນທຶກ. ໃຫ້ໃສ່ <b>SUPABASE_URL</b> ແລະ <b>SUPABASE_ANON_KEY</b> ໃນໂຄ້ດກ່ອນ.
+        </div>
 
-<form id="reqForm">
-<label>ປະເພດການປັກໝຸດ *</label>
-<div class="seg">
-<button type="button" class="seg-btn active" data-cat="request">🆘 ຂໍຊ່ວຍ</button>
-<button type="button" class="seg-btn" data-cat="facility">📍 ບໍລິການ</button>
-<button type="button" class="seg-btn" data-cat="hazard">🚧 ອັນຕະລາຍ</button>
-</div>
+        <form id="reqForm">
+          <label>ປະເພດການປັກໝຸດ *</label>
+          <div class="seg">
+            <button type="button" class="seg-btn active" data-cat="request">🆘 ຂໍຊ່ວຍ</button>
+            <button type="button" class="seg-btn" data-cat="facility">📍 ບໍລິການ</button>
+            <button type="button" class="seg-btn" data-cat="hazard">🚧 ອັນຕະລາຍ</button>
+          </div>
 
-<!-- ປະເພດຄຳຮ້ອງ (ໂໝດຂໍຄວາມຊ່ວຍເຫຼືອ) -->
-<div id="reqTypeWrap">
-<label>ປະເພດຄວາມຊ່ວຍເຫຼືອ *</label>
-<select id="helpType">
-<option value="evacuate">🔴 ອົບພະຍົບດ່ວນ</option>
-<option value="food">🟠 ອາຫານ / ນ້ຳດື່ມ</option>
-<option value="medicine">🟢 ຢາ / ເວຊະພັນ</option>
-<option value="other">⚪ ອື່ນໆ</option>
-</select>
-</div>
+          <!-- ປະເພດຄຳຮ້ອງ (ໂໝດຂໍຄວາມຊ່ວຍເຫຼືອ) -->
+          <div id="reqTypeWrap">
+            <label>ປະເພດຄວາມຊ່ວຍເຫຼືອ *</label>
+            <select id="helpType">
+              <option value="evacuate">🔴 ອົບພະຍົບດ່ວນ</option>
+              <option value="food">🟠 ອາຫານ / ນ້ຳດື່ມ</option>
+              <option value="medicine">🟢 ຢາ / ເວຊະພັນ</option>
+              <option value="other">⚪ ອື່ນໆ</option>
+            </select>
+          </div>
 
-<!-- ປະເພດຈຸດບໍລິການ (ໂໝດຈຸດບໍລິການ) -->
-<div id="facTypeWrap" style="display:none;">
-<label>ປະເພດຈຸດບໍລິການ *</label>
-<select id="facType">
-<option value="shelter">🏠 ຈຸດພັກພິງ</option>
-<option value="food_dist">🍚 ຈຸດແຈກອາຫານ</option>
-<option value="drink_water">🚰 ຈຸດແຈກນ້ຳດື່ມ</option>
-<option value="util_water">💧 ຈຸດແຈກນ້ຳໃຊ້</option>
-<option value="relief_station">⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</option>
-</select>
-</div>
+          <!-- ປະເພດຈຸດບໍລິການ (ໂໝດຈຸດບໍລິການ) -->
+          <div id="facTypeWrap" style="display:none;">
+            <label>ປະເພດຈຸດບໍລິການ *</label>
+            <select id="facType">
+              <option value="shelter">🏠 ຈຸດພັກພິງ</option>
+              <option value="food_dist">🍚 ຈຸດແຈກອາຫານ</option>
+              <option value="drink_water">🚰 ຈຸດແຈກນ້ຳດື່ມ</option>
+              <option value="util_water">💧 ຈຸດແຈກນ້ຳໃຊ້</option>
+              <option value="relief_station">⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</option>
+            </select>
+          </div>
 
-<!-- ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ (ໂໝດອັນຕະລາຍ) -->
-<div id="hazTypeWrap" style="display:none;">
-<label>ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ *</label>
-<select id="hazType">
-<option value="road_blocked">🚧 ເສັ້ນທາງໄປບໍ່ໄດ້</option>
-<option value="flood_high">🌊 ນ້ຳຖ້ວມສູງ / ອັນຕະລາຍ</option>
-<option value="landslide">⛰️ ດິນເຈື່ອນ</option>
-</select>
-</div>
+          <!-- ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ (ໂໝດອັນຕະລາຍ) -->
+          <div id="hazTypeWrap" style="display:none;">
+            <label>ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ *</label>
+            <select id="hazType">
+              <option value="road_blocked">🚧 ເສັ້ນທາງໄປບໍ່ໄດ້</option>
+              <option value="flood_high">🌊 ນ້ຳຖ້ວມສູງ / ອັນຕະລາຍ</option>
+              <option value="landslide">⛰️ ດິນເຈື່ອນ</option>
+            </select>
+          </div>
 
-<label id="nameLabel">ຊື່ຜູ້ແຈ້ງເຫດ *</label>
-<input type="text" id="name" placeholder="ຊື່ ຫຼື ນາມສະກຸນ" required />
+          <label id="nameLabel">ຊື່ຜູ້ແຈ້ງເຫດ *</label>
+          <input type="text" id="name" placeholder="ຊື່ ຫຼື ນາມສະກຸນ" required />
 
-<label>ເບີໂທຕິດຕໍ່</label>
-<input type="tel" id="phone" placeholder="020 xxxx xxxx" inputmode="tel" />
+          <label>ເບີໂທຕິດຕໍ່</label>
+          <input type="tel" id="phone" placeholder="020 xxxx xxxx" inputmode="tel" />
 
-<div class="row2" id="countWrap">
-<div>
-<label>ຈຳນວນຄົນ</label>
-<input type="number" id="people" min="0" value="1" inputmode="numeric" />
-</div>
-<div>
-<label>ຜູ້ປ່ວຍຕິດເຕຽງ</label>
-<input type="number" id="bedridden" min="0" value="0" inputmode="numeric" />
-</div>
-</div>
+          <div class="row2" id="countWrap">
+            <div>
+              <label>ຈຳນວນຄົນ</label>
+              <input type="number" id="people" min="0" value="1" inputmode="numeric" />
+            </div>
+            <div>
+              <label>ຜູ້ປ່ວຍຕິດເຕຽງ</label>
+              <input type="number" id="bedridden" min="0" value="0" inputmode="numeric" />
+            </div>
+          </div>
 
-<label id="detailsLabel">ລາຍລະອຽດເພີ່ມເຕີມ</label>
-<textarea id="details" placeholder="ເຊັ່ນ: ນ້ຳສູງ 1 ແມັດ, ມີເດັກນ້ອຍ 2 ຄົນ, ຕິດຢູ່ຊັ້ນ 2..."></textarea>
+          <label id="detailsLabel">ລາຍລະອຽດເພີ່ມເຕີມ</label>
+          <textarea id="details" placeholder="ເຊັ່ນ: ນ້ຳສູງ 1 ແມັດ, ມີເດັກນ້ອຍ 2 ຄົນ, ຕິດຢູ່ຊັ້ນ 2..."></textarea>
 
-<label>📷 ຮູບພາບ (ຖ່າຍ ຫຼື ເລືອກ — ສູງສຸດ 3 ຮູບ)</label>
-<input type="file" id="photo" accept="image/*" multiple />
-<div id="photoPreview" style="display:none;margin-top:8px;gap:6px;flex-wrap:wrap;"></div>
+          <label>📷 ຮູບພາບ (ຖ່າຍ ຫຼື ເລືອກ — ສູງສຸດ 3 ຮູບ)</label>
+          <input type="file" id="photo" accept="image/*" multiple />
+          <div id="photoPreview" style="display:none;margin-top:8px;gap:6px;flex-wrap:wrap;"></div>
 
-<label>ຈຸດພິກັດ ( Location) *</label>
-<button type="button" class="btn btn-gps" id="gpsBtn">📡 ດຶງພິກັດ GPS ປັດຈຸບັນ</button>
-<div class="coord-box" id="coordBox">ຍັງບໍ່ໄດ້ເລືອກຈຸດ — ແຕະເທິງແຜນທີ່ ຫຼື ກົດ GPS</div>
+          <label>ຈຸດພິກັດ ( Location) *</label>
+          <button type="button" class="btn btn-gps" id="gpsBtn">📡 ດຶງພິກັດ GPS ປັດຈຸບັນ</button>
+          <div class="coord-box" id="coordBox">ຍັງບໍ່ໄດ້ເລືອກຈຸດ — ແຕະເທິງແຜນທີ່ ຫຼື ກົດ GPS</div>
 
-<button type="submit" class="btn btn-submit" id="submitBtn">🚨 ສົ່ງຄຳຮ້ອງຂໍຄວາມຊ່ວຍເຫຼືອ</button>
-</form>
-</div>
-</aside>
-</div>
+          <button type="submit" class="btn btn-submit" id="submitBtn">🚨 ສົ່ງຄຳຮ້ອງຂໍຄວາມຊ່ວຍເຫຼືອ</button>
+        </form>
+      </div>
+    </aside>
+  </div>
 
-<!-- Edit modal (ສະເພาະ admin) -->
-<div id="editModal" class="modal-backdrop" style="display:none;">
-<div class="modal">
-<h3>✏️ ແກ້ໄຂຂໍ້ມູນຈຸດ</h3>
-<input type="hidden" id="eId" />
-<label>ປະເພດການປັກໝຸດ</label>
-<select id="eCategory">
-<option value="request">🆘 ຄຳຮ້ອງຊ່ວຍເຫຼືອ</option>
-<option value="facility">📍 ຈຸດບໍລິການ</option>
-<option value="hazard">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</option>
-</select>
-<label>ປະເພດຍ່ອຍ</label><select id="eType"></select>
-<label>ຊື່</label><input id="eName" />
-<label>ເບີໂທ</label><input id="ePhone" />
-<div class="mrow2">
-<div><label>ຈຳນວນຄົນ</label><input id="ePeople" type="number" min="0" /></div>
-<div><label>ຕິດເຕຽງ</label><input id="eBed" type="number" min="0" /></div>
-</div>
-<label>ລາຍລະອຽດ</label><textarea id="eDetails"></textarea>
-<label>ສະຖານະ</label>
-<select id="eStatus"><option value="pending">ຍັງບໍ່ໄດ້ຊ່ວຍ / ຍັງ</option><option value="helped">ຊ່ວຍແລ້ວ / ໄປໄດ້ແລ້ວ</option></select>
-<div class="modal-actions">
-<button class="cancel" id="eCancel">ຍົກເລີກ</button>
-<button class="save" id="eSave">💾 ບັນທຶກ</button>
-</div>
-</div>
-</div>
+  <!-- Edit modal (ສະເພาະ admin) -->
+  <div id="editModal" class="modal-backdrop" style="display:none;">
+    <div class="modal">
+      <h3>✏️ ແກ້ໄຂຂໍ້ມູນຈຸດ</h3>
+      <input type="hidden" id="eId" />
+      <label>ປະເພດການປັກໝຸດ</label>
+      <select id="eCategory">
+        <option value="request">🆘 ຄຳຮ້ອງຊ່ວຍເຫຼືອ</option>
+        <option value="facility">📍 ຈຸດບໍລິການ</option>
+        <option value="hazard">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</option>
+      </select>
+      <label>ປະເພດຍ່ອຍ</label><select id="eType"></select>
+      <label>ຊື່</label><input id="eName" />
+      <label>ເບີໂທ</label><input id="ePhone" />
+      <div class="mrow2">
+        <div><label>ຈຳນວນຄົນ</label><input id="ePeople" type="number" min="0" /></div>
+        <div><label>ຕິດເຕຽງ</label><input id="eBed" type="number" min="0" /></div>
+      </div>
+      <label>ລາຍລະອຽດ</label><textarea id="eDetails"></textarea>
+      <label>ສະຖານະ</label>
+      <select id="eStatus"><option value="pending">ຍັງບໍ່ໄດ້ຊ່ວຍ / ຍັງ</option><option value="helped">ຊ່ວຍແລ້ວ / ໄປໄດ້ແລ້ວ</option></select>
+      <div class="modal-actions">
+        <button class="cancel" id="eCancel">ຍົກເລີກ</button>
+        <button class="save" id="eSave">💾 ບັນທຶກ</button>
+      </div>
+    </div>
+  </div>
 
-<div class="toast" id="toast"></div>
+  <div class="toast" id="toast"></div>
 
-<script>
-/* ============================================================
-    1) ຕັ້ງຄ່າ SUPABASE  —  ໃສ່ຄ່າຂອງທ່ານທີ່ນີ້
-       ຫາໄດ້ຈາກ: Supabase Dashboard -> Project Settings -> API
-    ============================================================ */
-const SUPABASE_URL = "https://tbwignuwbinkcaczunly.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRid2lnbnV3Ymlua2NhY3p1bmx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNzY3OTYsImV4cCI6MjEwMzY1Mjc5Nn0.7Yx5xQLs79SyrOvCJxeyPdIILGGMGbNuTCz-zUbGsaM";
+  <script>
+  /* ============================================================
+     1) ຕັ້ງຄ່າ SUPABASE  —  ໃສ່ຄ່າຂອງທ່ານທີ່ນີ້
+        ຫາໄດ້ຈາກ: Supabase Dashboard -> Project Settings -> API
+     ============================================================ */
+  const SUPABASE_URL = "https://tbwignuwbinkcaczunly.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRid2lnbnV3Ymlua2NhY3p1bmx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNzY3OTYsImV4cCI6MjEwMzY1Mjc5Nn0.7Yx5xQLs79SyrOvCJxeyPdIILGGMGbNuTCz-zUbGsaM";
 
-const isConfigured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
-let supa = null;
-let isAdmin = false;   // ເປັນ true ເມື່ອ admin login ຢູ່ (ຜ່ານ admin.html, browser ດຽວກັນ)
-if (isConfigured) {
-supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} else {
-document.getElementById('configWarn').style.display = 'block';
-}
+  const isConfigured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
+  let supa = null;
+  let isAdmin = false;   // ເປັນ true ເມື່ອ admin login ຢູ່ (ຜ່ານ admin.html, browser ດຽວກັນ)
+  if (isConfigured) {
+    supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    document.getElementById('configWarn').style.display = 'block';
+  }
 
-/* ============================================================
-    2) ຂໍ້ມູນປະເພດຄວາມຊ່ວຍເຫຼືອ (ສີ + ຊື່ພາສາລາວ)
-    ============================================================ */
-const HELP_TYPES = {
-evacuate: { label: "ອົບພະຍົບດ່ວນ",       emoji: "🆘", color: "#e63946" },
-food:     { label: "ອາຫານ / ນ້ຳດື່ມ",     emoji: "🍚", color: "#f4a261" },
-medicine: { label: "ຢາ / ເວຊະພັນ",        emoji: "💊", color: "#2a9d8f" },
-other:    { label: "ອື່ນໆ",               emoji: "📌", color: "#6c757d" }
-};
+  /* ============================================================
+     2) ຂໍ້ມູນປະເພດຄວາມຊ່ວຍເຫຼືອ (ສີ + ຊື່ພາສາລາວ)
+     ============================================================ */
+  const HELP_TYPES = {
+    evacuate: { label: "ອົບພະຍົບດ່ວນ",       emoji: "🆘", color: "#e63946" },
+    food:     { label: "ອາຫານ / ນ້ຳດື່ມ",     emoji: "🍚", color: "#f4a261" },
+    medicine: { label: "ຢາ / ເວຊະພັນ",        emoji: "💊", color: "#2a9d8f" },
+    other:    { label: "ອື່ນໆ",               emoji: "📌", color: "#6c757d" }
+  };
 
-/* ປະເພດຈຸດບໍລິການ (emoji + ສີ + ຊື່ພາສາລາວ) */
-const FACILITY_TYPES = {
-shelter:        { label: "ຈຸດພັກພິງ",              emoji: "🏠", color: "#1d6fb8" },
-food_dist:      { label: "ຈຸດແຈກອາຫານ",            emoji: "🍚", color: "#e67700" },
-drink_water:    { label: "ຈຸດແຈກນ້ຳດື່ມ",          emoji: "🚰", color: "#0aa5c9" },
-util_water:     { label: "ຈຸດແຈກນ້ຳໃຊ້",           emoji: "💧", color: "#6a4fb3" },
-relief_station: { label: "ຈຸດປະຈຳການຊ່ວຍເຫຼືອ",    emoji: "⛑️", color: "#2a9d8f" }
-};
+  /* ປະເພດຈຸດບໍລິການ (emoji + ສີ + ຊື່ພາສາລາວ) */
+  const FACILITY_TYPES = {
+    shelter:        { label: "ຈຸດພັກພິງ",              emoji: "🏠", color: "#1d6fb8" },
+    food_dist:      { label: "ຈຸດແຈກອາຫານ",            emoji: "🍚", color: "#e67700" },
+    drink_water:    { label: "ຈຸດແຈກນ້ຳດື່ມ",          emoji: "🚰", color: "#0aa5c9" },
+    util_water:     { label: "ຈຸດແຈກນ້ຳໃຊ້",           emoji: "💧", color: "#6a4fb3" },
+    relief_station: { label: "ຈຸດປະຈຳການຊ່ວຍເຫຼືອ",    emoji: "⛑️", color: "#2a9d8f" }
+  };
 
-/* ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ */
-const HAZARD_TYPES = {
-road_blocked: { label: "ເສັ້ນທາງໄປບໍ່ໄດ້",     emoji: "🚧", color: "#d62828" },
-flood_high:   { label: "ນ້ຳຖ້ວມສູງ / ອັນຕະລາຍ", emoji: "🌊", color: "#1d6fb8" },
-landslide:    { label: "ດິນເຈື່ອນ",             emoji: "⛰️", color: "#8a5a2b" }
-};
+  /* ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ */
+  const HAZARD_TYPES = {
+    road_blocked: { label: "ເສັ້ນທາງໄປບໍ່ໄດ້",     emoji: "🚧", color: "#d62828" },
+    flood_high:   { label: "ນ້ຳຖ້ວມສູງ / ອັນຕະລາຍ", emoji: "🌊", color: "#1d6fb8" },
+    landslide:    { label: "ດິນເຈື່ອນ",             emoji: "⛰️", color: "#8a5a2b" }
+  };
 
-let currentCat = 'request';   // ໂໝດຟອມປັດຈຸບັນ: request | facility | hazard
+  let currentCat = 'request';   // ໂໝດຟອມປັດຈຸບັນ: request | facility | hazard
 
-/* ============================================================
-    3) ສ້າງແຜນທີ່ Leaflet (ຕັ້ງຕົ້ນທີ່ ນະຄອນຫຼວງວຽງຈັນ)
-    ============================================================ */
-const map = L.map('map', { zoomControl: true }).setView([17.9757, 102.6331], 12);
-map.zoomControl.setPosition('topleft');   // ຍ້າຍປຸ່ມ zoom ໄປຊ້າຍເທິງ
+  /* ============================================================
+     3) ສ້າງແຜນທີ່ Leaflet (ຕັ້ງຕົ້ນທີ່ ນະຄອນຫຼວງວຽງຈັນ)
+     ============================================================ */
+  const map = L.map('map', { zoomControl: true }).setView([17.9757, 102.6331], 12);
+  map.zoomControl.setPosition('topleft');   // ຍ້າຍປຸ່ມ zoom ໄປຊ້າຍເທິງ
 
-// ຮູບແບບແຜນທີ່ (ຟຣີ ບໍ່ຕ້ອງ API key)
-const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-maxZoom: 19, attribution: '&copy; OpenStreetMap'
-});
-const baseHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-maxZoom: 19, attribution: '&copy; OpenStreetMap France, HOT'
-});
-const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19, attribution: '&copy; Esri World Imagery'
+  // ຮູບແບບແຜນທີ່ (ຟຣີ ບໍ່ຕ້ອງ API key)
+  const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap'
+  });
+  const baseHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap France, HOT'
+  });
+  const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19, maxNativeZoom: 17, attribution: '&copy; Esri World Imagery'
-});
-const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19, attribution: '&copy; Esri'
+  });
+  const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19, maxNativeZoom: 17, attribution: '&copy; Esri'
-});
-// ດາວທຽມ + ປ້າຍຊື່ (hybrid) ເປັນກຸ່ມດຽວ
-const satHybrid = L.layerGroup([esriSat, esriLabels]);
-satHybrid.addTo(map);   // ຄ່າເລີ່ມຕົ້ນ = ດາວທຽມ
-L.control.layers(
-{ 'ແຜນທີ່ (OSM)': baseOSM, 'ແຜນທີ່ໄພພິບັດ (HOT)': baseHOT, 'ດາວທຽມ': satHybrid },
-null,
-{ position: 'bottomleft', collapsed: true }
-).addTo(map);
+  });
+  // ດາວທຽມ + ປ້າຍຊື່ (hybrid) ເປັນກຸ່ມດຽວ
+  const satHybrid = L.layerGroup([esriSat, esriLabels]);
+  satHybrid.addTo(map);   // ຄ່າເລີ່ມຕົ້ນ = ດາວທຽມ
+  L.control.layers(
+    { 'ແຜນທີ່ (OSM)': baseOSM, 'ແຜນທີ່ໄພພິບັດ (HOT)': baseHOT, 'ດາວທຽມ': satHybrid },
+    null,
+    { position: 'bottomleft', collapsed: true }
+  ).addTo(map);
 
-const markersLayer = L.layerGroup().addTo(map);   // ໝຸດຈາກຖານຂໍ້ມູນ
-let selectedLatLng = null;                         // ຈຸດທີ່ຜູ້ໃຊ້ເລືອກ
-let pickMarker = null;                             // ໝຸດຊົ່ວຄາວ
-let youHere = null;                                // ໝຸດ "ທ່ານຢູ່ນີ້"
+  const markersLayer = L.layerGroup().addTo(map);   // ໝຸດຈາກຖານຂໍ້ມູນ
+  let selectedLatLng = null;                         // ຈຸດທີ່ຜູ້ໃຊ້ເລືອກ
+  let pickMarker = null;                             // ໝຸດຊົ່ວຄາວ
+  let youHere = null;                                // ໝຸດ "ທ່ານຢູ່ນີ້"
 
-/* ສ້າງໄອຄອນໝຸດສີ (ໃຊ້ divIcon) */
-function makeIcon(color, emoji, count, done=false){
-const c = done ? '#16a34a' : color;   // ຊ່ວຍແລ້ວ = ສີຂຽວ
-const head = done
-? `<span style="color:#fff;font-weight:900;font-size:17px;">✓</span>`
-: `<span style="font-size:18px;line-height:1;">${emoji || ''}</span>`;
-// ປ້າຍຕົວເລກຈຳນວນຄົນ (ມູມຂວາເທິງ)
-const badge = (!done && count != null && count !== '' && Number(count) > 0)
-? `<div style="position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 4px;
-         background:#111;color:#fff;border:2px solid #fff;border-radius:10px;font-size:11px;font-weight:800;
-         display:flex;align-items:center;justify-content:center;line-height:1;">${count}</div>`
-: '';
-return L.divIcon({
-className: 'custom-pin',
-html: `<div style="position:relative;width:36px;height:48px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));">
-       <div style="width:36px;height:36px;border-radius:50%;background:${c};border:3px solid #fff;
-         display:flex;align-items:center;justify-content:center;">${head}</div>
-       <div style="position:absolute;left:50%;top:30px;transform:translateX(-50%);width:0;height:0;
-         border-left:9px solid transparent;border-right:9px solid transparent;border-top:14px solid ${c};"></div>
-       ${badge}
-     </div>`,
-iconSize: [36,48], iconAnchor: [18,48], popupAnchor:[0,-46]
-});
-}
+  /* ສ້າງໄອຄອນໝຸດສີ (ໃຊ້ divIcon) */
+  function makeIcon(color, emoji, count, done=false){
+    const c = done ? '#16a34a' : color;   // ຊ່ວຍແລ້ວ = ສີຂຽວ
+    const head = done
+      ? `<span style="color:#fff;font-weight:900;font-size:17px;">✓</span>`
+      : `<span style="font-size:18px;line-height:1;">${emoji || ''}</span>`;
+    // ປ້າຍຕົວເລກຈຳນວນຄົນ (ມູມຂວາເທິງ)
+    const badge = (!done && count != null && count !== '' && Number(count) > 0)
+      ? `<div style="position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 4px;
+          background:#111;color:#fff;border:2px solid #fff;border-radius:10px;font-size:11px;font-weight:800;
+          display:flex;align-items:center;justify-content:center;line-height:1;">${count}</div>`
+      : '';
+    return L.divIcon({
+      className: 'custom-pin',
+      html: `<div style="position:relative;width:36px;height:48px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));">
+        <div style="width:36px;height:36px;border-radius:50%;background:${c};border:3px solid #fff;
+          display:flex;align-items:center;justify-content:center;">${head}</div>
+        <div style="position:absolute;left:50%;top:30px;transform:translateX(-50%);width:0;height:0;
+          border-left:9px solid transparent;border-right:9px solid transparent;border-top:14px solid ${c};"></div>
+        ${badge}
+      </div>`,
+      iconSize: [36,48], iconAnchor: [18,48], popupAnchor:[0,-46]
+    });
+  }
 
-/* ໄອຄອນຈຸດບໍລິການ (ຮູບສີ່ຫຼ່ຽມມົນ + emoji) */
-function makeFacilityIcon(emoji, color){
-return L.divIcon({
-className: 'facility-pin',
-html: `<div style="background:${color};width:36px;height:36px;border-radius:10px;
-       border:3px solid #fff;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));
-       display:flex;align-items:center;justify-content:center;font-size:19px;">${emoji}</div>`,
-iconSize: [36,36], iconAnchor: [18,18], popupAnchor:[0,-19]
-});
-}
+  /* ໄອຄອນຈຸດບໍລິການ (ຮູບສີ່ຫຼ່ຽມມົນ + emoji) */
+  function makeFacilityIcon(emoji, color){
+    return L.divIcon({
+      className: 'facility-pin',
+      html: `<div style="background:${color};width:36px;height:36px;border-radius:10px;
+        border:3px solid #fff;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));
+        display:flex;align-items:center;justify-content:center;font-size:19px;">${emoji}</div>`,
+      iconSize: [36,36], iconAnchor: [18,18], popupAnchor:[0,-19]
+    });
+  }
 
-/* ໄອຄອນຈຸດອັນຕະລາຍ (ຮູບວົງມົນ + emoji) */
-function makeHazardIcon(emoji, color){
-return L.divIcon({
-className: 'hazard-pin',
-html: `<div style="background:${color};width:36px;height:36px;border-radius:50%;
-       border:3px solid #fff;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));
-       display:flex;align-items:center;justify-content:center;font-size:19px;">${emoji}</div>`,
-iconSize: [36,36], iconAnchor: [18,18], popupAnchor:[0,-19]
-});
-}
+  /* ໄອຄອນຈຸດອັນຕະລາຍ (ຮູບວົງມົນ + emoji) */
+  function makeHazardIcon(emoji, color){
+    return L.divIcon({
+      className: 'hazard-pin',
+      html: `<div style="background:${color};width:36px;height:36px;border-radius:50%;
+        border:3px solid #fff;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45));
+        display:flex;align-items:center;justify-content:center;font-size:19px;">${emoji}</div>`,
+      iconSize: [36,36], iconAnchor: [18,18], popupAnchor:[0,-19]
+    });
+  }
 
-/* ໝຸດ "ກຳລັງຈະປັກ" (draft) — ຮູບແບບຕ່າງຈາກໝຸດຈິງທັງໝົດ */
-function makePickIcon(){
-return L.divIcon({
-className: 'pick-pin',
-html: `<div class="pick-pin-inner"></div>`,
-iconSize: [26,26], iconAnchor: [13,13], popupAnchor: [0,-14]
-});
-}
+  /* ໝຸດ "ກຳລັງຈະປັກ" (draft) — ຮູບແບບຕ່າງຈາກໝຸດຈິງທັງໝົດ */
+  function makePickIcon(){
+    return L.divIcon({
+      className: 'pick-pin',
+      html: `<div class="pick-pin-inner"></div>`,
+      iconSize: [26,26], iconAnchor: [13,13], popupAnchor: [0,-14]
+    });
+  }
 
-/* ============================================================
-    4) ເລືອກຈຸດເທິງແຜນທີ່ (ແຕະ / ຄລິກ)
-    ============================================================ */
-map.on('click', (e) => setSelected(e.latlng.lat, e.latlng.lng));
+  /* ============================================================
+     4) ເລືອກຈຸດເທິງແຜນທີ່ (ແຕະ / ຄລິກ)
+     ============================================================ */
+  map.on('click', (e) => setSelected(e.latlng.lat, e.latlng.lng));
 
-function setSelected(lat, lng){
-selectedLatLng = { lat, lng };
-if (pickMarker) map.removeLayer(pickMarker);
-pickMarker = L.marker([lat, lng], { icon: makePickIcon(), zIndexOffset: 2000 }).addTo(map);
-pickMarker.bindPopup("📍 ຈຸດໃໝ່ ທີ່ກຳລັງຈະແຈ້ງ (ຍັງບໍ່ໄດ້ສົ່ງ)").openPopup();
-document.getElementById('coordBox').innerHTML =
-`📍 ຈຸດທີ່ເລືອກ: <b>${lat.toFixed(5)}, ${lng.toFixed(5)}</b>`;
-}
+  function setSelected(lat, lng){
+    selectedLatLng = { lat, lng };
+    if (pickMarker) map.removeLayer(pickMarker);
+    pickMarker = L.marker([lat, lng], { icon: makePickIcon(), zIndexOffset: 2000 }).addTo(map);
+    pickMarker.bindPopup("📍 ຈຸດໃໝ່ ທີ່ກຳລັງຈະແຈ້ງ (ຍັງບໍ່ໄດ້ສົ່ງ)").openPopup();
+    document.getElementById('coordBox').innerHTML =
+      `📍 ຈຸດທີ່ເລືອກ: <b>${lat.toFixed(5)}, ${lng.toFixed(5)}</b>`;
+  }
 
-/* ໝຸດ draft ຮູບແບບຄົງທີ່ (ບໍ່ຂຶ້ນກັບປະເພດ) — ບໍ່ຕ້ອງ refresh ຕາມປະເພດ */
-function refreshPickIcon(){ /* draft icon ຄົງທີ່ */ }
+  /* ໝຸດ draft ຮູບແບບຄົງທີ່ (ບໍ່ຂຶ້ນກັບປະເພດ) — ບໍ່ຕ້ອງ refresh ຕາມປະເພດ */
+  function refreshPickIcon(){ /* draft icon ຄົງທີ່ */ }
 
-/* ============================================================
-    4.1) ສະຫຼັບໂໝດຟອມ: ຄຳຮ້ອງ  <->  ຈຸດບໍລິການ
-    ============================================================ */
-function applyCategoryUI(cat){
-currentCat = cat;
-const isReq = (cat === 'request');
-const isFac = (cat === 'facility');
-const isHaz = (cat === 'hazard');
-document.querySelectorAll('.seg-btn').forEach(b =>
-b.classList.toggle('active', b.dataset.cat === cat));
+  /* ============================================================
+     4.1) ສະຫຼັບໂໝດຟອມ: ຄຳຮ້ອງ  <->  ຈຸດບໍລິການ
+     ============================================================ */
+  function applyCategoryUI(cat){
+    currentCat = cat;
+    const isReq = (cat === 'request');
+    const isFac = (cat === 'facility');
+    const isHaz = (cat === 'hazard');
+    document.querySelectorAll('.seg-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.cat === cat));
 
-document.getElementById('reqTypeWrap').style.display = isReq ? 'block' : 'none';
-document.getElementById('facTypeWrap').style.display = isFac ? 'block' : 'none';
-document.getElementById('hazTypeWrap').style.display = isHaz ? 'block' : 'none';
-document.getElementById('countWrap').style.display   = isReq ? 'flex'  : 'none';
+    document.getElementById('reqTypeWrap').style.display = isReq ? 'block' : 'none';
+    document.getElementById('facTypeWrap').style.display = isFac ? 'block' : 'none';
+    document.getElementById('hazTypeWrap').style.display = isHaz ? 'block' : 'none';
+    document.getElementById('countWrap').style.display   = isReq ? 'flex'  : 'none';
 
-const name = document.getElementById('name');
-const details = document.getElementById('details');
-const submitBtn = document.getElementById('submitBtn');
-submitBtn.classList.remove('btn-fac','btn-haz');
+    const name = document.getElementById('name');
+    const details = document.getElementById('details');
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.classList.remove('btn-fac','btn-haz');
 
-if (isFac){
-document.getElementById('formTitle').textContent = '📍 ເພີ່ມຈຸດບໍລິການ';
-document.getElementById('nameLabel').textContent = 'ຊື່ຈຸດ / ຜູ້ຮັບຜິດຊອບ *';
-name.placeholder = 'ເຊັ່ນ: ວັດ..., ໂຮງຮຽນ..., ຈຸດ...';
-document.getElementById('detailsLabel').textContent = 'ລາຍລະອຽດ / ເວລາເປີດ-ປິດ / ຄວາມຈຸ';
-details.placeholder = 'ເຊັ່ນ: ເປີດ 08:00-20:00, ຮັບໄດ້ 50 ຄົນ, ມີນ້ຳດື່ມ ແລະ ຫ້ອງນ້ຳ...';
-submitBtn.textContent = '📍 ບັນທຶກຈຸດບໍລິການ';
-submitBtn.classList.add('btn-fac');
-} else if (isHaz){
-document.getElementById('formTitle').textContent = '🚧 ແຈ້ງຈຸດອັນຕະລາຍ / ເສັ້ນທາງ';
-document.getElementById('nameLabel').textContent = 'ຊື່ຈຸດ / ຜູ້ແຈ້ງ *';
-name.placeholder = 'ເຊັ່ນ: ຂົວ..., ທາງເຂົ້າບ້ານ...';
-document.getElementById('detailsLabel').textContent = 'ລາຍລະອຽດ (ນ້ຳສູງເທົ່າໃດ / ຕັ້ງແຕ່ເມື່ອໃດ)';
-details.placeholder = 'ເຊັ່ນ: ນ້ຳຖ້ວມສູງ 1.5 ແມັດ, ລົດຜ່ານບໍ່ໄດ້...';
-submitBtn.textContent = '🚧 ແຈ້ງຈຸດອັນຕະລາຍ';
-submitBtn.classList.add('btn-haz');
-} else {
-document.getElementById('formTitle').textContent = '📝 ແບບຟອມແຈ້ງເຫດ';
-document.getElementById('nameLabel').textContent = 'ຊື່ຜູ້ແຈ້ງເຫດ *';
-name.placeholder = 'ຊື່ ຫຼື ນາມສະກຸນ';
-document.getElementById('detailsLabel').textContent = 'ລາຍລະອຽດເພີ່ມເຕີມ';
-details.placeholder = 'ເຊັ່ນ: ນ້ຳສູງ 1 ແມັດ, ມີເດັກນ້ອຍ 2 ຄົນ, ຕິດຢູ່ຊັ້ນ 2...';
-submitBtn.textContent = '🚨 ສົ່ງຄຳຮ້ອງຂໍຄວາມຊ່ວຍເຫຼືອ';
-}
-refreshPickIcon();
-}
-document.querySelectorAll('.seg-btn').forEach(b =>
-b.addEventListener('click', () => applyCategoryUI(b.dataset.cat)));
+    if (isFac){
+      document.getElementById('formTitle').textContent = '📍 ເພີ່ມຈຸດບໍລິການ';
+      document.getElementById('nameLabel').textContent = 'ຊື່ຈຸດ / ຜູ້ຮັບຜິດຊອບ *';
+      name.placeholder = 'ເຊັ່ນ: ວັດ..., ໂຮງຮຽນ..., ຈຸດ...';
+      document.getElementById('detailsLabel').textContent = 'ລາຍລະອຽດ / ເວລາເປີດ-ປິດ / ຄວາມຈຸ';
+      details.placeholder = 'ເຊັ່ນ: ເປີດ 08:00-20:00, ຮັບໄດ້ 50 ຄົນ, ມີນ້ຳດື່ມ ແລະ ຫ້ອງນ້ຳ...';
+      submitBtn.textContent = '📍 ບັນທຶກຈຸດບໍລິການ';
+      submitBtn.classList.add('btn-fac');
+    } else if (isHaz){
+      document.getElementById('formTitle').textContent = '🚧 ແຈ້ງຈຸດອັນຕະລາຍ / ເສັ້ນທາງ';
+      document.getElementById('nameLabel').textContent = 'ຊື່ຈຸດ / ຜູ້ແຈ້ງ *';
+      name.placeholder = 'ເຊັ່ນ: ຂົວ..., ທາງເຂົ້າບ້ານ...';
+      document.getElementById('detailsLabel').textContent = 'ລາຍລະອຽດ (ນ້ຳສູງເທົ່າໃດ / ຕັ້ງແຕ່ເມື່ອໃດ)';
+      details.placeholder = 'ເຊັ່ນ: ນ້ຳຖ້ວມສູງ 1.5 ແມັດ, ລົດຜ່ານບໍ່ໄດ້...';
+      submitBtn.textContent = '🚧 ແຈ້ງຈຸດອັນຕະລາຍ';
+      submitBtn.classList.add('btn-haz');
+    } else {
+      document.getElementById('formTitle').textContent = '📝 ແບບຟອມແຈ້ງເຫດ';
+      document.getElementById('nameLabel').textContent = 'ຊື່ຜູ້ແຈ້ງເຫດ *';
+      name.placeholder = 'ຊື່ ຫຼື ນາມສະກຸນ';
+      document.getElementById('detailsLabel').textContent = 'ລາຍລະອຽດເພີ່ມເຕີມ';
+      details.placeholder = 'ເຊັ່ນ: ນ້ຳສູງ 1 ແມັດ, ມີເດັກນ້ອຍ 2 ຄົນ, ຕິດຢູ່ຊັ້ນ 2...';
+      submitBtn.textContent = '🚨 ສົ່ງຄຳຮ້ອງຂໍຄວາມຊ່ວຍເຫຼືອ';
+    }
+    refreshPickIcon();
+  }
+  document.querySelectorAll('.seg-btn').forEach(b =>
+    b.addEventListener('click', () => applyCategoryUI(b.dataset.cat)));
 
-/* ============================================================
-    5) ປຸ່ມ GPS — ດຶງພິກັດປັດຈຸບັນ
-    ============================================================ */
-function resetGpsBtn(btn){ btn.textContent = "📡 ດຶງພິກັດ GPS ປັດຈຸບັນ"; btn.disabled = false; }
+  /* ============================================================
+     5) ປຸ່ມ GPS — ດຶງພິກັດປັດຈຸບັນ
+     ============================================================ */
+  function resetGpsBtn(btn){ btn.textContent = "📡 ດຶງພິກັດ GPS ປັດຈຸບັນ"; btn.disabled = false; }
 
-document.getElementById('gpsBtn').addEventListener('click', () => {
-const btn = document.getElementById('gpsBtn');
+  document.getElementById('gpsBtn').addEventListener('click', () => {
+    const btn = document.getElementById('gpsBtn');
 
-if (!navigator.geolocation) { showToast("ບຣາວເຊີ/ອຸປະກອນ ບໍ່ຮອງຮັບ GPS", "err"); return; }
+    if (!navigator.geolocation) { showToast("ບຣາວເຊີ/ອຸປະກອນ ບໍ່ຮອງຮັບ GPS", "err"); return; }
 
-// geolocation ໃຊ້ໄດ້ສະເພາະ HTTPS ຫຼື localhost — ເຕືອນຖ້າເປີດແບບບໍ່ປອດໄພ
-if (!window.isSecureContext) {
-showToast("⚠️ ຕ້ອງເປີດຜ່ານ HTTPS (ເຊັ່ນ ລິ້ງ Vercel) ຫຼື localhost ຈຶ່ງໃຊ້ GPS ໄດ້", "err");
-}
+    // geolocation ໃຊ້ໄດ້ສະເພາະ HTTPS ຫຼື localhost — ເຕືອນຖ້າເປີດແບບບໍ່ປອດໄພ
+    if (!window.isSecureContext) {
+      showToast("⚠️ ຕ້ອງເປີດຜ່ານ HTTPS (ເຊັ່ນ ລິ້ງ Vercel) ຫຼື localhost ຈຶ່ງໃຊ້ GPS ໄດ້", "err");
+    }
 
-btn.textContent = "⏳ ກຳລັງຄົ້ນຫາພິກັດ...";
-btn.disabled = true;
+    btn.textContent = "⏳ ກຳລັງຄົ້ນຫາພິກັດ...";
+    btn.disabled = true;
 
-navigator.geolocation.getCurrentPosition(
-(pos) => {
-const { latitude, longitude, accuracy } = pos.coords;
-map.setView([latitude, longitude], 16);
-setSelected(latitude, longitude);
-resetGpsBtn(btn);
-const acc = Math.round(accuracy || 0);
-showToast(`ໄດ້ພິກັດແລ້ວ ✓ (ຄວາມແມ່ນຢຳ ±${acc} ມ.)`, "ok");
-// ຖ້າຄາດເຄື່ອນຫຼາຍ (desktop/WiFi) ເຕືອນໃຫ້ແຕະປັບເທິງແຜນທີ່
-if (acc > 500) showToast("ຕຳແໜ່ງອາດຄາດເຄື່ອນ — ແຕະເທິງແຜນທີ່ເພື່ອປັບຈຸດໃຫ້ຖືກຕ້ອງ", "err");
-},
-(err) => {
-resetGpsBtn(btn);
-let msg = "ດຶງ GPS ບໍ່ໄດ້ — ແຕະເລືອກຈຸດເທິງແຜນທີ່ແທນໄດ້";
-if (err.code === 1) msg = "ຖືກປະຕິເສດ — ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງຕຳແໜ່ງ (Location) ໃນບຣາວເຊີ ແລ້ວລອງໃໝ່";
-else if (err.code === 2) msg = "ຫາຕຳແໜ່ງບໍ່ພົບ — ເປີດ GPS/ອິນເຕີເນັດ ຫຼື ແຕະເລືອກເທິງແຜນທີ່";
-else if (err.code === 3) msg = "ໝົດເວລາຄົ້ນຫາ — ລອງໃໝ່ ຫຼື ແຕະເລືອກເທິງແຜນທີ່";
-showToast(msg, "err");
-console.error("Geolocation error:", err.code, err.message);
-},
-{ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-);
-});
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        map.setView([latitude, longitude], 16);
+        setSelected(latitude, longitude);
+        resetGpsBtn(btn);
+        const acc = Math.round(accuracy || 0);
+        showToast(`ໄດ້ພິກັດແລ້ວ ✓ (ຄວາມແມ່ນຢຳ ±${acc} ມ.)`, "ok");
+        // ຖ້າຄາດເຄື່ອນຫຼາຍ (desktop/WiFi) ເຕືອນໃຫ້ແຕະປັບເທິງແຜນທີ່
+        if (acc > 500) showToast("ຕຳແໜ່ງອາດຄາດເຄື່ອນ — ແຕະເທິງແຜນທີ່ເພື່ອປັບຈຸດໃຫ້ຖືກຕ້ອງ", "err");
+      },
+      (err) => {
+        resetGpsBtn(btn);
+        let msg = "ດຶງ GPS ບໍ່ໄດ້ — ແຕະເລືອກຈຸດເທິງແຜນທີ່ແທນໄດ້";
+        if (err.code === 1) msg = "ຖືກປະຕິເສດ — ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງຕຳແໜ່ງ (Location) ໃນບຣາວເຊີ ແລ້ວລອງໃໝ່";
+        else if (err.code === 2) msg = "ຫາຕຳແໜ່ງບໍ່ພົບ — ເປີດ GPS/ອິນເຕີເນັດ ຫຼື ແຕະເລືອກເທິງແຜນທີ່";
+        else if (err.code === 3) msg = "ໝົດເວລາຄົ້ນຫາ — ລອງໃໝ່ ຫຼື ແຕະເລືອກເທິງແຜນທີ່";
+        showToast(msg, "err");
+        console.error("Geolocation error:", err.code, err.message);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
 
-/* ============================================================
-    6) ສົ່ງຟອມ — ບັນທຶກ (INSERT) ລົງ Supabase
-    ============================================================ */
-document.getElementById('reqForm').addEventListener('submit', async (e) => {
-e.preventDefault();
-if (!selectedLatLng) { showToast("ກະລຸນາເລືອກຈຸດພິກັດກ່ອນ (GPS ຫຼື ແຕະແຜນທີ່)", "err"); return; }
+  /* ============================================================
+     6) ສົ່ງຟອມ — ບັນທຶກ (INSERT) ລົງ Supabase
+     ============================================================ */
+  document.getElementById('reqForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedLatLng) { showToast("ກະລຸນາເລືອກຈຸດພິກັດກ່ອນ (GPS ຫຼື ແຕະແຜນທີ່)", "err"); return; }
 
-const cat = currentCat;
-const isReq = (cat === 'request');
-let help_type;
-if (cat === 'facility') help_type = document.getElementById('facType').value;
-else if (cat === 'hazard') help_type = document.getElementById('hazType').value;
-else help_type = document.getElementById('helpType').value;
+    const cat = currentCat;
+    const isReq = (cat === 'request');
+    let help_type;
+    if (cat === 'facility') help_type = document.getElementById('facType').value;
+    else if (cat === 'hazard') help_type = document.getElementById('hazType').value;
+    else help_type = document.getElementById('helpType').value;
 
-const payload = {
-category:     cat,   // request | facility | hazard
-name:         document.getElementById('name').value.trim(),
-phone:        document.getElementById('phone').value.trim(),
-help_type:    help_type,
-people_count: isReq ? (parseInt(document.getElementById('people').value) || 0) : 0,
-bedridden:    isReq ? (parseInt(document.getElementById('bedridden').value) || 0) : 0,
-details:      document.getElementById('details').value.trim(),
-lat:          selectedLatLng.lat,
-lng:          selectedLatLng.lng
-};
+    const payload = {
+      category:     cat,   // request | facility | hazard
+      name:         document.getElementById('name').value.trim(),
+      phone:        document.getElementById('phone').value.trim(),
+      help_type:    help_type,
+      people_count: isReq ? (parseInt(document.getElementById('people').value) || 0) : 0,
+      bedridden:    isReq ? (parseInt(document.getElementById('bedridden').value) || 0) : 0,
+      details:      document.getElementById('details').value.trim(),
+      lat:          selectedLatLng.lat,
+      lng:          selectedLatLng.lng
+    };
 
-const btn = document.getElementById('submitBtn');
-const savedCat = cat;
-btn.disabled = true; btn.textContent = "⏳ ກຳລັງສົ່ງ...";
+    const btn = document.getElementById('submitBtn');
+    const savedCat = cat;
+    btn.disabled = true; btn.textContent = "⏳ ກຳລັງສົ່ງ...";
 
-if (!isConfigured) {
-// ໂໝດທົດລອງ (ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ Supabase) — ສະແດງໝຸດຊົ່ວຄາວໃນເຄື່ອງ
-allPoints.unshift({ ...payload, id: 'demo-' + Date.now(), created_at: new Date().toISOString() });
-renderMarkers();
-showToast("ບັນທຶກຊົ່ວຄາວ (ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ Supabase)", "err");
-afterSubmit(btn, savedCat);
-return;
-}
+    if (!isConfigured) {
+      // ໂໝດທົດລອງ (ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ Supabase) — ສະແດງໝຸດຊົ່ວຄາວໃນເຄື່ອງ
+      allPoints.unshift({ ...payload, id: 'demo-' + Date.now(), created_at: new Date().toISOString() });
+      renderMarkers();
+      showToast("ບັນທຶກຊົ່ວຄາວ (ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ Supabase)", "err");
+      afterSubmit(btn, savedCat);
+      return;
+    }
 
-// ອັບໂຫຼດຮູບ (ສູງສຸດ 3) ຂຶ້ນ Supabase Storage bucket 'photos' — ບີບອັດກ່ອນອັບ
-if (selectedPhotos.length) {
-const urls = [];
-for (let i = 0; i < selectedPhotos.length; i++){
-btn.textContent = `⏳ ກຳລັງອັບຮູບ ${i+1}/${selectedPhotos.length}...`;
-const blob = await compressImage(selectedPhotos[i]);
-const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
-const up = await supa.storage.from('photos').upload(path, blob, { cacheControl:'3600', upsert:false, contentType:'image/jpeg' });
-if (up.error) { console.error(up.error); showToast("ອັບບາງຮູບບໍ່ໄດ້: " + up.error.message, "err"); }
-else urls.push(supa.storage.from('photos').getPublicUrl(path).data.publicUrl);
-}
-if (urls.length){ payload.photo_urls = urls; payload.photo_url = urls[0]; }
-btn.textContent = "⏳ ກຳລັງສົ່ງ...";
-}
+    // ອັບໂຫຼດຮູບ (ສູງສຸດ 3) ຂຶ້ນ Supabase Storage bucket 'photos' — ບີບອັດກ່ອນອັບ
+    if (selectedPhotos.length) {
+      const urls = [];
+      for (let i = 0; i < selectedPhotos.length; i++){
+        btn.textContent = `⏳ ກຳລັງອັບຮູບ ${i+1}/${selectedPhotos.length}...`;
+        const blob = await compressImage(selectedPhotos[i]);
+        const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+        const up = await supa.storage.from('photos').upload(path, blob, { cacheControl:'3600', upsert:false, contentType:'image/jpeg' });
+        if (up.error) { console.error(up.error); showToast("ອັບບາງຮູບບໍ່ໄດ້: " + up.error.message, "err"); }
+        else urls.push(supa.storage.from('photos').getPublicUrl(path).data.publicUrl);
+      }
+      if (urls.length){ payload.photo_urls = urls; payload.photo_url = urls[0]; }
+      btn.textContent = "⏳ ກຳລັງສົ່ງ...";
+    }
 
-const { error } = await supa.from('requests').insert([payload]);
-if (error) {
-console.error(error);
-showToast("ຜິດພາດ: " + error.message, "err");
-btn.disabled = false; applyCategoryUI(savedCat);
-return;
-}
-const okMsg = savedCat === 'request' ? "ສົ່ງຄຳຮ້ອງສຳເລັດ ✓ ຂໍໃຫ້ປອດໄພ"
-: savedCat === 'hazard'  ? "ແຈ້ງຈຸດອັນຕະລາຍສຳເລັດ ✓"
-: "ບັນທຶກຈຸດບໍລິການສຳເລັດ ✓";
-showToast(okMsg, "ok");
-afterSubmit(btn, savedCat);
-loadRequests();   // ໂຫຼດໃໝ່ໃຫ້ເຫັນໝຸດຫຼ້າສຸດ
-});
+    const { error } = await supa.from('requests').insert([payload]);
+    if (error) {
+      console.error(error);
+      showToast("ຜິດພາດ: " + error.message, "err");
+      btn.disabled = false; applyCategoryUI(savedCat);
+      return;
+    }
+    const okMsg = savedCat === 'request' ? "ສົ່ງຄຳຮ້ອງສຳເລັດ ✓ ຂໍໃຫ້ປອດໄພ"
+                : savedCat === 'hazard'  ? "ແຈ້ງຈຸດອັນຕະລາຍສຳເລັດ ✓"
+                : "ບັນທຶກຈຸດບໍລິການສຳເລັດ ✓";
+    showToast(okMsg, "ok");
+    afterSubmit(btn, savedCat);
+    loadRequests();   // ໂຫຼດໃໝ່ໃຫ້ເຫັນໝຸດຫຼ້າສຸດ
+  });
 
-function afterSubmit(btn, cat){
-document.getElementById('reqForm').reset();
-selectedPhotos = [];
-document.getElementById('photoPreview').style.display = 'none';
-document.getElementById('photoPreview').innerHTML = '';
-document.getElementById('coordBox').innerHTML = "ຍັງບໍ່ໄດ້ເລືອກຈຸດ — ແຕະເທິງແຜນທີ່ ຫຼື ກົດ GPS";
-if (pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
-selectedLatLng = null;
-btn.disabled = false;
-applyCategoryUI(cat || 'request');   // ຮັກສາໂໝດເດີມໄວ້
-closePanel();
-}
+  function afterSubmit(btn, cat){
+    document.getElementById('reqForm').reset();
+    selectedPhotos = [];
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('photoPreview').innerHTML = '';
+    document.getElementById('coordBox').innerHTML = "ຍັງບໍ່ໄດ້ເລືອກຈຸດ — ແຕະເທິງແຜນທີ່ ຫຼື ກົດ GPS";
+    if (pickMarker){ map.removeLayer(pickMarker); pickMarker = null; }
+    selectedLatLng = null;
+    btn.disabled = false;
+    applyCategoryUI(cat || 'request');   // ຮັກສາໂໝດເດີມໄວ້
+    closePanel();
+  }
 
-/* ຮູບພາບ — ຮອງຮັບສູງສຸດ 3 ຮູບ */
-let selectedPhotos = [];
-const MAX_PHOTOS = 3;
-document.getElementById('photo').addEventListener('change', (e) => {
-const files = Array.from(e.target.files);
-if (files.length > MAX_PHOTOS) showToast(`ໃສ່ໄດ້ສູງສຸດ ${MAX_PHOTOS} ຮູບ — ເອົາ ${MAX_PHOTOS} ຮູບທຳອິດ`, "err");
-selectedPhotos = files.slice(0, MAX_PHOTOS);
-renderPhotoPreview();
-});
-function renderPhotoPreview(){
-const prev = document.getElementById('photoPreview');
-if (!selectedPhotos.length){ prev.style.display='none'; prev.innerHTML=''; return; }
-prev.style.display = 'flex';
-prev.innerHTML = selectedPhotos.map((f,i)=>`
-     <div style="position:relative;">
-       <img src="${URL.createObjectURL(f)}" style="width:84px;height:84px;object-fit:cover;border-radius:8px;display:block;" />
-       <button type="button" data-i="${i}" class="photo-del" style="position:absolute;top:-6px;right:-6px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;line-height:1;">×</button>
-     </div>`).join('');
-prev.querySelectorAll('.photo-del').forEach(b => b.addEventListener('click', () => {
-selectedPhotos.splice(Number(b.dataset.i), 1);
-renderPhotoPreview();
-}));
-}
+  /* ຮູບພາບ — ຮອງຮັບສູງສຸດ 3 ຮູບ */
+  let selectedPhotos = [];
+  const MAX_PHOTOS = 3;
+  document.getElementById('photo').addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > MAX_PHOTOS) showToast(`ໃສ່ໄດ້ສູງສຸດ ${MAX_PHOTOS} ຮູບ — ເອົາ ${MAX_PHOTOS} ຮູບທຳອິດ`, "err");
+    selectedPhotos = files.slice(0, MAX_PHOTOS);
+    renderPhotoPreview();
+  });
+  function renderPhotoPreview(){
+    const prev = document.getElementById('photoPreview');
+    if (!selectedPhotos.length){ prev.style.display='none'; prev.innerHTML=''; return; }
+    prev.style.display = 'flex';
+    prev.innerHTML = selectedPhotos.map((f,i)=>`
+      <div style="position:relative;">
+        <img src="${URL.createObjectURL(f)}" style="width:84px;height:84px;object-fit:cover;border-radius:8px;display:block;" />
+        <button type="button" data-i="${i}" class="photo-del" style="position:absolute;top:-6px;right:-6px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;line-height:1;">×</button>
+      </div>`).join('');
+    prev.querySelectorAll('.photo-del').forEach(b => b.addEventListener('click', () => {
+      selectedPhotos.splice(Number(b.dataset.i), 1);
+      renderPhotoPreview();
+    }));
+  }
 
-/* ບີບອັດ/ຫຍໍ້ຮູບ ຢູ່ browser ກ່ອນອັບ (ປະຢັດພື້ນທີ່ + ອັບໄວ) */
-async function compressImage(file, maxDim = 1600, quality = 0.7){
-try{
-const bitmap = await createImageBitmap(file);
-let w = bitmap.width, h = bitmap.height;
-if (Math.max(w, h) > maxDim){
-const s = maxDim / Math.max(w, h);
-w = Math.round(w * s); h = Math.round(h * s);
-}
-const canvas = document.createElement('canvas');
-canvas.width = w; canvas.height = h;
-canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
-const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
-// ຖ້າຫຍໍ້ແລ້ວໃຫຍ່ກວ່າຕົ້ນສະບັບ ໃຫ້ໃຊ້ຕົ້ນສະບັບ
-return (blob && blob.size < file.size) ? blob : (blob || file);
-} catch(e){
-console.warn('compressImage failed, use original:', e);
-return file;
-}
-}
+  /* ບີບອັດ/ຫຍໍ້ຮູບ ຢູ່ browser ກ່ອນອັບ (ປະຢັດພື້ນທີ່ + ອັບໄວ) */
+  async function compressImage(file, maxDim = 1600, quality = 0.7){
+    try{
+      const bitmap = await createImageBitmap(file);
+      let w = bitmap.width, h = bitmap.height;
+      if (Math.max(w, h) > maxDim){
+        const s = maxDim / Math.max(w, h);
+        w = Math.round(w * s); h = Math.round(h * s);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+      // ຖ້າຫຍໍ້ແລ້ວໃຫຍ່ກວ່າຕົ້ນສະບັບ ໃຫ້ໃຊ້ຕົ້ນສະບັບ
+      return (blob && blob.size < file.size) ? blob : (blob || file);
+    } catch(e){
+      console.warn('compressImage failed, use original:', e);
+      return file;
+    }
+  }
 
-/* ============================================================
-    7) ໂຫຼດຂໍ້ມູນ (SELECT) ຈາກ Supabase ແລ້ວປັກໝຸດ
-    ============================================================ */
-let allPoints = [];   // ຂໍ້ມູນທັງໝົດຈາກ DB
-const FILTER_KEYS = ['request','shelter','food_dist','drink_water','util_water','relief_station','road_blocked','flood_high','landslide'];
-let activeFilter = 'all';   // ເລືອກສະແດງປະເພດດຽວ ('all' = ໝົດ)
+  /* ============================================================
+     7) ໂຫຼດຂໍ້ມູນ (SELECT) ຈາກ Supabase ແລ້ວປັກໝຸດ
+     ============================================================ */
+  let allPoints = [];   // ຂໍ້ມູນທັງໝົດຈາກ DB
+  const FILTER_KEYS = ['request','shelter','food_dist','drink_water','util_water','relief_station','road_blocked','flood_high','landslide'];
+  let activeFilter = 'all';   // ເລືອກສະແດງປະເພດດຽວ ('all' = ໝົດ)
 
-async function loadRequests(){
-if (!isConfigured){ renderMarkers(); return; }
-const { data, error } = await supa
-.from('requests')
-.select('*')
-.order('created_at', { ascending: false });
-if (error){ console.error(error); showToast("ໂຫຼດຂໍ້ມູນບໍ່ໄດ້: " + error.message, "err"); return; }
-allPoints = data || [];
-renderMarkers();
-}
+  async function loadRequests(){
+    if (!isConfigured){ renderMarkers(); return; }
+    const { data, error } = await supa
+      .from('requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error){ console.error(error); showToast("ໂຫຼດຂໍ້ມູນບໍ່ໄດ້: " + error.message, "err"); return; }
+    allPoints = data || [];
+    renderMarkers();
+  }
 
-function filterKeyOf(r){
-return ((r.category || 'request') === 'request') ? 'request' : r.help_type;
-}
+  function filterKeyOf(r){
+    return ((r.category || 'request') === 'request') ? 'request' : r.help_type;
+  }
 
-/* ວາດໝຸດໃໝ່ທັງໝົດ ຕາມ filter ທີ່ເປີດຢູ່ */
-function renderMarkers(){
-markersLayer.clearLayers();
-allPoints
-.filter(r => activeFilter === 'all' || filterKeyOf(r) === activeFilter)
-.forEach(r => {
-const c = r.category || 'request';
-if (c === 'facility') addFacilityMarker(r);
-else if (c === 'hazard') addHazardMarker(r);
-else addRequestMarker(r);
-});
-updateCount(markersLayer.getLayers().length);
-}
+  /* ວາດໝຸດໃໝ່ທັງໝົດ ຕາມ filter ທີ່ເປີດຢູ່ */
+  function renderMarkers(){
+    markersLayer.clearLayers();
+    allPoints
+      .filter(r => activeFilter === 'all' || filterKeyOf(r) === activeFilter)
+      .forEach(r => {
+        const c = r.category || 'request';
+        if (c === 'facility') addFacilityMarker(r);
+        else if (c === 'hazard') addHazardMarker(r);
+        else addRequestMarker(r);
+      });
+    updateCount(markersLayer.getLayers().length);
+  }
 
-/* ໝຸດ "ຄຳຮ້ອງຂໍຊ່ວຍເຫຼືອ" (ຮູບຢອດນ້ຳ + ສີຕາມຄວາມເລ່ງດ່ວນ) */
-function addRequestMarker(r){
-const t = HELP_TYPES[r.help_type] || HELP_TYPES.other;
-const helped = (r.status === 'helped');
-const color = helped ? '#16a34a' : t.color;      // ຊ່ວຍແລ້ວ = ສີຂຽວ
-const marker = L.marker([r.lat, r.lng], { icon: makeIcon(t.color, t.emoji, r.people_count || 0, helped) });
-const time = formatTime(r.created_at);
-const phoneHtml = r.phone
-? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
-const bedHtml = (r.bedridden > 0)
-? `<div class="popup-row"><b>🛏️ ຜູ້ປ່ວຍຕິດເຕຽງ:</b> ${r.bedridden} ຄົນ</div>` : "";
-const detailHtml = r.details
-? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
+  /* ໝຸດ "ຄຳຮ້ອງຂໍຊ່ວຍເຫຼືອ" (ຮູບຢອດນ້ຳ + ສີຕາມຄວາມເລ່ງດ່ວນ) */
+  function addRequestMarker(r){
+    const t = HELP_TYPES[r.help_type] || HELP_TYPES.other;
+    const helped = (r.status === 'helped');
+    const color = helped ? '#16a34a' : t.color;      // ຊ່ວຍແລ້ວ = ສີຂຽວ
+    const marker = L.marker([r.lat, r.lng], { icon: makeIcon(t.color, t.emoji, r.people_count || 0, helped) });
+    const time = formatTime(r.created_at);
+    const phoneHtml = r.phone
+      ? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
+    const bedHtml = (r.bedridden > 0)
+      ? `<div class="popup-row"><b>🛏️ ຜູ້ປ່ວຍຕິດເຕຽງ:</b> ${r.bedridden} ຄົນ</div>` : "";
+    const detailHtml = r.details
+      ? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
 
-// ປ້າຍສະຖານະ (ຊັດເຈນ)
-const stateHtml = helped
-? `<div class="popup-state helped">✅ ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ</div>`
-: `<div class="popup-state pending">⏳ ຍັງບໍ່ໄດ້ຮັບການຊ່ວຍເຫຼືອ</div>`;
-// ປຸ່ມກົດ — ໃຫ້ທຸກຄົນກົດໄດ້
-let actionHtml = "";
-if (r.id && !helped) {
-actionHtml = `<button class="popup-btn" onclick="markHelped('${r.id}', this)">✅ ໝາຍວ່າ ໄດ້ຊ່ວຍແລ້ວ</button>
-       <div style="font-size:10.5px;color:#888;text-align:center;margin-top:3px;">ກົດໄດ້ໂດຍ ຜູ້ໄປຊ່ວຍ ຫຼື ຜູ້ແຈ້ງເອງ</div>`;
-} else if (r.id && helped) {
-// ຫາກກົດຫຼົງ — ແກ້ຄືນໄດ້
-actionHtml = `<button class="popup-btn undo" onclick="markPending('${r.id}', this)">↩ ແກ້ຄືນ ຍັງບໍ່ໄດ້ຊ່ວຍ</button>`;
-}
-const navHtml = navButton(r.lat, r.lng);
+    // ປ້າຍສະຖານະ (ຊັດເຈນ)
+    const stateHtml = helped
+      ? `<div class="popup-state helped">✅ ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ</div>`
+      : `<div class="popup-state pending">⏳ ຍັງບໍ່ໄດ້ຮັບການຊ່ວຍເຫຼືອ</div>`;
+    // ປຸ່ມກົດ — ໃຫ້ທຸກຄົນກົດໄດ້
+    let actionHtml = "";
+    if (r.id && !helped) {
+      actionHtml = `<button class="popup-btn" onclick="markHelped('${r.id}', this)">✅ ໝາຍວ່າ ໄດ້ຊ່ວຍແລ້ວ</button>
+        <div style="font-size:10.5px;color:#888;text-align:center;margin-top:3px;">ກົດໄດ້ໂດຍ ຜູ້ໄປຊ່ວຍ ຫຼື ຜູ້ແຈ້ງເອງ</div>`;
+    } else if (r.id && helped) {
+      // ຫາກກົດຫຼົງ — ແກ້ຄືນໄດ້
+      actionHtml = `<button class="popup-btn undo" onclick="markPending('${r.id}', this)">↩ ແກ້ຄືນ ຍັງບໍ່ໄດ້ຊ່ວຍ</button>`;
+    }
+    const navHtml = navButton(r.lat, r.lng);
 
-marker.bindPopup(`
-     <div class="popup-title">${escapeHtml(r.name || 'ບໍ່ລະບຸຊື່')}</div>
-     <span class="popup-badge" style="background:${color}">${t.label}</span>
-     ${stateHtml}
-     ${phoneHtml}
-     <div class="popup-row"><b>👥 ຈຳນວນຄົນ:</b> ${r.people_count || 0} ຄົນ</div>
-     ${bedHtml}
-     ${detailHtml}
-     ${photoHtml(r)}
-     <div class="popup-time">🕒 ແຈ້ງເຫດເມື່ອ: ${time}</div>
-     ${navHtml}
-     ${actionHtml}
-     ${adminButtons(r)}
-   `);
-marker.addTo(markersLayer);
-}
+    marker.bindPopup(`
+      <div class="popup-title">${escapeHtml(r.name || 'ບໍ່ລະບຸຊື່')}</div>
+      <span class="popup-badge" style="background:${color}">${t.label}</span>
+      ${stateHtml}
+      ${phoneHtml}
+      <div class="popup-row"><b>👥 ຈຳນວນຄົນ:</b> ${r.people_count || 0} ຄົນ</div>
+      ${bedHtml}
+      ${detailHtml}
+      ${photoHtml(r)}
+      <div class="popup-time">🕒 ແຈ້ງເຫດເມື່ອ: ${time}</div>
+      ${navHtml}
+      ${actionHtml}
+      ${adminButtons(r)}
+    `);
+    marker.addTo(markersLayer);
+  }
 
-/* ປຸ່ມນຳທາງໄປ Google Maps */
-function navButton(lat, lng){
-return `<a class="popup-btn nav" target="_blank" rel="noopener"
-     href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">🗺️ ນຳທາງໄປຫາໝຸດ</a>`;
-}
+  /* ປຸ່ມນຳທາງໄປ Google Maps */
+  function navButton(lat, lng){
+    return `<a class="popup-btn nav" target="_blank" rel="noopener"
+      href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">🗺️ ນຳທາງໄປຫາໝຸດ</a>`;
+  }
 
-/* ຮູບພາບໃນ popup (ຮອງຮັບຫຼາຍຮູບ) */
-function photoHtml(r){
-let urls = Array.isArray(r.photo_urls) ? r.photo_urls.filter(Boolean) : [];
-if (!urls.length && r.photo_url) urls = [r.photo_url];
-if (!urls.length) return "";
-if (urls.length === 1){
-const u = encodeURI(urls[0]);
-return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="ຮູບ"
-       style="width:100%;border-radius:8px;margin-top:8px;max-height:150px;object-fit:cover;display:block;" /></a>`;
-}
-return `<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">` +
-urls.map(u => { const e = encodeURI(u); return `<a href="${e}" target="_blank" rel="noopener"><img src="${e}"
-       style="width:76px;height:76px;object-fit:cover;border-radius:6px;display:block;" /></a>`; }).join('') +
-`</div>`;
-}
+  /* ຮູບພາບໃນ popup (ຮອງຮັບຫຼາຍຮູບ) */
+  function photoHtml(r){
+    let urls = Array.isArray(r.photo_urls) ? r.photo_urls.filter(Boolean) : [];
+    if (!urls.length && r.photo_url) urls = [r.photo_url];
+    if (!urls.length) return "";
+    if (urls.length === 1){
+      const u = encodeURI(urls[0]);
+      return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="ຮູບ"
+        style="width:100%;border-radius:8px;margin-top:8px;max-height:150px;object-fit:cover;display:block;" /></a>`;
+    }
+    return `<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">` +
+      urls.map(u => { const e = encodeURI(u); return `<a href="${e}" target="_blank" rel="noopener"><img src="${e}"
+        style="width:76px;height:76px;object-fit:cover;border-radius:6px;display:block;" /></a>`; }).join('') +
+      `</div>`;
+  }
 
-/* ໝຸດ "ຈຸດບໍລິການ" (ຮູບສີ່ຫຼ່ຽມ + emoji) */
-function addFacilityMarker(r){
-const f = FACILITY_TYPES[r.help_type] || FACILITY_TYPES.relief_station;
-const marker = L.marker([r.lat, r.lng], { icon: makeFacilityIcon(f.emoji, f.color) });
-const time = formatTime(r.created_at);
-const phoneHtml = r.phone
-? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
-const detailHtml = r.details
-? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
-marker.bindPopup(`
-     <div class="popup-title">${f.emoji} ${escapeHtml(r.name || f.label)}</div>
-     <span class="popup-badge" style="background:${f.color}">${f.label}</span>
-     ${phoneHtml}
-     ${detailHtml}
-     ${photoHtml(r)}
-     <div class="popup-time">🕒 ອັບເດດເມື່ອ: ${time}</div>
-     ${navButton(r.lat, r.lng)}
-     ${adminButtons(r)}
-   `);
-marker.addTo(markersLayer);
-}
+  /* ໝຸດ "ຈຸດບໍລິການ" (ຮູບສີ່ຫຼ່ຽມ + emoji) */
+  function addFacilityMarker(r){
+    const f = FACILITY_TYPES[r.help_type] || FACILITY_TYPES.relief_station;
+    const marker = L.marker([r.lat, r.lng], { icon: makeFacilityIcon(f.emoji, f.color) });
+    const time = formatTime(r.created_at);
+    const phoneHtml = r.phone
+      ? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
+    const detailHtml = r.details
+      ? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
+    marker.bindPopup(`
+      <div class="popup-title">${f.emoji} ${escapeHtml(r.name || f.label)}</div>
+      <span class="popup-badge" style="background:${f.color}">${f.label}</span>
+      ${phoneHtml}
+      ${detailHtml}
+      ${photoHtml(r)}
+      <div class="popup-time">🕒 ອັບເດດເມື່ອ: ${time}</div>
+      ${navButton(r.lat, r.lng)}
+      ${adminButtons(r)}
+    `);
+    marker.addTo(markersLayer);
+  }
 
-/* ໝຸດ "ອັນຕະລາຍ / ເສັ້ນທາງ" (ຮູບວົງມົນ + emoji) */
-function addHazardMarker(r){
-const h = HAZARD_TYPES[r.help_type] || HAZARD_TYPES.road_blocked;
-const resolved = (r.status === 'helped');   // ໄປໄດ້ແລ້ວ / ຄືນປົກກະຕິ
-const iconColor = resolved ? '#16a34a' : h.color;
-const marker = L.marker([r.lat, r.lng], { icon: makeHazardIcon(h.emoji, iconColor) });
-const time = formatTime(r.created_at);
-const phoneHtml = r.phone
-? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
-const detailHtml = r.details
-? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
+  /* ໝຸດ "ອັນຕະລາຍ / ເສັ້ນທາງ" (ຮູບວົງມົນ + emoji) */
+  function addHazardMarker(r){
+    const h = HAZARD_TYPES[r.help_type] || HAZARD_TYPES.road_blocked;
+    const resolved = (r.status === 'helped');   // ໄປໄດ້ແລ້ວ / ຄືນປົກກະຕິ
+    const iconColor = resolved ? '#16a34a' : h.color;
+    const marker = L.marker([r.lat, r.lng], { icon: makeHazardIcon(h.emoji, iconColor) });
+    const time = formatTime(r.created_at);
+    const phoneHtml = r.phone
+      ? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
+    const detailHtml = r.details
+      ? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
 
-const stateHtml = resolved
-? `<div class="popup-state helped">✅ ໄປໄດ້ແລ້ວ / ຄືນສູ່ປົກກະຕິ</div>`
-: `<div class="popup-state pending">⚠️ ຍັງເປັນອັນຕະລາຍ / ໄປບໍ່ໄດ້</div>`;
-let actionHtml = "";
-if (r.id && !resolved) {
-actionHtml = `<button class="popup-btn" onclick="markPassable('${r.id}', this)">✅ ໝາຍວ່າ ໄປໄດ້ແລ້ວ</button>
-       <div style="font-size:10.5px;color:#888;text-align:center;margin-top:3px;">ກົດເມື່ອ ເສັ້ນທາງໃຊ້ໄດ້ / ຄືນປົກກະຕິ</div>`;
-} else if (r.id && resolved) {
-actionHtml = `<button class="popup-btn undo" onclick="markBlocked('${r.id}', this)">↩ ແກ້ຄືນ ຍັງໄປບໍ່ໄດ້</button>`;
-}
+    const stateHtml = resolved
+      ? `<div class="popup-state helped">✅ ໄປໄດ້ແລ້ວ / ຄືນສູ່ປົກກະຕິ</div>`
+      : `<div class="popup-state pending">⚠️ ຍັງເປັນອັນຕະລາຍ / ໄປບໍ່ໄດ້</div>`;
+    let actionHtml = "";
+    if (r.id && !resolved) {
+      actionHtml = `<button class="popup-btn" onclick="markPassable('${r.id}', this)">✅ ໝາຍວ່າ ໄປໄດ້ແລ້ວ</button>
+        <div style="font-size:10.5px;color:#888;text-align:center;margin-top:3px;">ກົດເມື່ອ ເສັ້ນທາງໃຊ້ໄດ້ / ຄືນປົກກະຕິ</div>`;
+    } else if (r.id && resolved) {
+      actionHtml = `<button class="popup-btn undo" onclick="markBlocked('${r.id}', this)">↩ ແກ້ຄືນ ຍັງໄປບໍ່ໄດ້</button>`;
+    }
 
-marker.bindPopup(`
-     <div class="popup-title">${h.emoji} ${escapeHtml(r.name || h.label)}</div>
-     <span class="popup-badge" style="background:${iconColor}">${h.label}</span>
-     ${stateHtml}
-     ${phoneHtml}
-     ${detailHtml}
-     ${photoHtml(r)}
-     <div class="popup-time">🕒 ແຈ້ງເມື່ອ: ${time}</div>
-     ${navButton(r.lat, r.lng)}
-     ${actionHtml}
-     ${adminButtons(r)}
-   `);
-marker.addTo(markersLayer);
-}
+    marker.bindPopup(`
+      <div class="popup-title">${h.emoji} ${escapeHtml(r.name || h.label)}</div>
+      <span class="popup-badge" style="background:${iconColor}">${h.label}</span>
+      ${stateHtml}
+      ${phoneHtml}
+      ${detailHtml}
+      ${photoHtml(r)}
+      <div class="popup-time">🕒 ແຈ້ງເມື່ອ: ${time}</div>
+      ${navButton(r.lat, r.lng)}
+      ${actionHtml}
+      ${adminButtons(r)}
+    `);
+    marker.addTo(markersLayer);
+  }
 
-/* UPDATE ສະຖານະໃນ Supabase (ໃຊ້ຮ່ວມກັນ) */
-async function updateStatus(id, status, btnEl, msgs){
-if (!isConfigured){ showToast("ຕ້ອງຕັ້ງຄ່າ Supabase ກ່ອນ ຈຶ່ງອັບເດດໄດ້", "err"); return; }
-if (msgs.confirm && !confirm(msgs.confirm)) return;
-const orig = btnEl ? btnEl.innerHTML : null;
-if (btnEl){ btnEl.disabled = true; btnEl.textContent = "⏳ ກຳລັງອັບເດດ..."; }
-const { error } = await supa.from('requests').update({ status }).eq('id', id);
-if (error){
-console.error(error);
-showToast("ອັບເດດບໍ່ໄດ້: " + error.message, "err");
-if (btnEl){ btnEl.disabled = false; btnEl.innerHTML = orig; }
-return;
-}
-map.closePopup();
-showToast(msgs.ok, "ok");
-loadRequests();
-}
-// ຄຳຮ້ອງ: ຊ່ວຍແລ້ວ / ແກ້ຄືນ
-window.markHelped  = (id, b) => updateStatus(id, 'helped',  b, { confirm:"ຢືນຢັນວ່າ ຈຸດນີ້ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວແທ້ບໍ່?", ok:"ອັບເດດເປັນ 'ຊ່ວຍເຫຼືອແລ້ວ' ✓" });
-window.markPending = (id, b) => updateStatus(id, 'pending', b, { confirm:"ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ບໍ່?", ok:"ແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ✓" });
-// ອັນຕະລາຍ/ເສັ້ນທາງ: ໄປໄດ້ແລ້ວ / ແກ້ຄືນ
-window.markPassable = (id, b) => updateStatus(id, 'helped',  b, { confirm:"ຢືນຢັນວ່າ ເສັ້ນທາງ/ຈຸດນີ້ ໄປໄດ້ / ຄືນສູ່ປົກກະຕິແລ້ວແທ້ບໍ່?", ok:"ອັບເດດເປັນ 'ໄປໄດ້ແລ້ວ' ✓" });
-window.markBlocked  = (id, b) => updateStatus(id, 'pending', b, { confirm:"ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງໄປບໍ່ໄດ້' ບໍ່?", ok:"ແກ້ຄືນເປັນ 'ຍັງໄປບໍ່ໄດ້' ✓" });
+  /* UPDATE ສະຖານະໃນ Supabase (ໃຊ້ຮ່ວມກັນ) */
+  async function updateStatus(id, status, btnEl, msgs){
+    if (!isConfigured){ showToast("ຕ້ອງຕັ້ງຄ່າ Supabase ກ່ອນ ຈຶ່ງອັບເດດໄດ້", "err"); return; }
+    if (msgs.confirm && !confirm(msgs.confirm)) return;
+    const orig = btnEl ? btnEl.innerHTML : null;
+    if (btnEl){ btnEl.disabled = true; btnEl.textContent = "⏳ ກຳລັງອັບເດດ..."; }
+    const { error } = await supa.from('requests').update({ status }).eq('id', id);
+    if (error){
+      console.error(error);
+      showToast("ອັບເດດບໍ່ໄດ້: " + error.message, "err");
+      if (btnEl){ btnEl.disabled = false; btnEl.innerHTML = orig; }
+      return;
+    }
+    map.closePopup();
+    showToast(msgs.ok, "ok");
+    loadRequests();
+  }
+  // ຄຳຮ້ອງ: ຊ່ວຍແລ້ວ / ແກ້ຄືນ
+  window.markHelped  = (id, b) => updateStatus(id, 'helped',  b, { confirm:"ຢືນຢັນວ່າ ຈຸດນີ້ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວແທ້ບໍ່?", ok:"ອັບເດດເປັນ 'ຊ່ວຍເຫຼືອແລ້ວ' ✓" });
+  window.markPending = (id, b) => updateStatus(id, 'pending', b, { confirm:"ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ບໍ່?", ok:"ແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ✓" });
+  // ອັນຕະລາຍ/ເສັ້ນທາງ: ໄປໄດ້ແລ້ວ / ແກ້ຄືນ
+  window.markPassable = (id, b) => updateStatus(id, 'helped',  b, { confirm:"ຢືນຢັນວ່າ ເສັ້ນທາງ/ຈຸດນີ້ ໄປໄດ້ / ຄືນສູ່ປົກກະຕິແລ້ວແທ້ບໍ່?", ok:"ອັບເດດເປັນ 'ໄປໄດ້ແລ້ວ' ✓" });
+  window.markBlocked  = (id, b) => updateStatus(id, 'pending', b, { confirm:"ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງໄປບໍ່ໄດ້' ບໍ່?", ok:"ແກ້ຄືນເປັນ 'ຍັງໄປບໍ່ໄດ້' ✓" });
 
-/* ===== ແກ້ໄຂ / ລົບ (ສະເພາະ admin ທີ່ login) ===== */
-function adminButtons(r){
-if (!isAdmin || !r.id) return '';
-return `<div style="display:flex;gap:6px;margin-top:8px;">
-     <button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>
-     <button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>
-   </div>`;
-}
-const _editModal = document.getElementById('editModal');
-function _typeOptions(cat, selected){
-const map2 = cat==='facility' ? FACILITY_TYPES : cat==='hazard' ? HAZARD_TYPES : HELP_TYPES;
-return Object.entries(map2).map(([k,v]) => `<option value="${k}" ${k===selected?'selected':''}>${v.emoji?v.emoji+' ':''}${v.label}</option>`).join('');
-}
-window.editPoint = function(id){
-const r = allPoints.find(x => x.id === id); if (!r) return;
-document.getElementById('eId').value = r.id;
-document.getElementById('eCategory').value = r.category || 'request';
-document.getElementById('eType').innerHTML = _typeOptions(r.category || 'request', r.help_type);
-document.getElementById('eName').value = r.name || '';
-document.getElementById('ePhone').value = r.phone || '';
-document.getElementById('ePeople').value = r.people_count || 0;
-document.getElementById('eBed').value = r.bedridden || 0;
-document.getElementById('eDetails').value = r.details || '';
-document.getElementById('eStatus').value = (r.status === 'helped') ? 'helped' : 'pending';
-map.closePopup();
-_editModal.style.display = 'flex';
-};
-document.getElementById('eCategory').addEventListener('change', e => {
-document.getElementById('eType').innerHTML = _typeOptions(e.target.value);
-});
-document.getElementById('eCancel').addEventListener('click', () => _editModal.style.display = 'none');
-_editModal.addEventListener('click', e => { if (e.target === _editModal) _editModal.style.display = 'none'; });
-document.getElementById('eSave').addEventListener('click', async () => {
-const id = document.getElementById('eId').value;
-const cat = document.getElementById('eCategory').value;
-const isReq = (cat === 'request');
-const patch = {
-category: cat,
-help_type: document.getElementById('eType').value,
-name: document.getElementById('eName').value.trim(),
-phone: document.getElementById('ePhone').value.trim(),
-people_count: isReq ? (parseInt(document.getElementById('ePeople').value) || 0) : 0,
-bedridden: isReq ? (parseInt(document.getElementById('eBed').value) || 0) : 0,
-details: document.getElementById('eDetails').value.trim(),
-status: document.getElementById('eStatus').value
-};
-const b = document.getElementById('eSave'); b.disabled = true; b.textContent = '⏳ ກຳລັງບັນທຶກ...';
-const { error } = await supa.from('requests').update(patch).eq('id', id);
-b.disabled = false; b.textContent = '💾 ບັນທຶກ';
-if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message + " (ຕ້ອງ login admin)", "err"); return; }
-showToast("ບັນທຶກແລ້ວ ✓", "ok");
-_editModal.style.display = 'none';
-loadRequests();
-});
-window.deletePoint = async function(id){
-if (!confirm("ຕ້ອງການລົບຈຸດນີ້ແທ້ບໍ່? ການລົບຈະກູ້ຄືນບໍ່ໄດ້.")) return;
-const { error } = await supa.from('requests').delete().eq('id', id);
-if (error){ console.error(error); showToast("ລົບບໍ່ໄດ້: " + error.message + " (ຕ້ອງ login admin)", "err"); return; }
-map.closePopup();
-showToast("ລົບແລ້ວ ✓", "ok");
-loadRequests();
-};
+  /* ===== ແກ້ໄຂ / ລົບ (ສະເພາະ admin ທີ່ login) ===== */
+  function adminButtons(r){
+    if (!r.id) return '';
+    const cat = r.category || 'request';
+    let btns = '';
+    // ແກ້ໄຂ: ຈຸດບໍລິການ/ອັນຕະລາຍ = ທຸກຄົນ; ຄຳຮ້ອງ SOS = admin ເທົ່ານັ້ນ
+    if (cat !== 'request' || isAdmin) {
+      btns += `<button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>`;
+    }
+    // ລົບ: admin ເທົ່ານັ້ນ
+    if (isAdmin) {
+      btns += `<button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>`;
+    }
+    return btns ? `<div style="display:flex;gap:6px;margin-top:8px;">${btns}</div>` : '';
+  }
+  const _editModal = document.getElementById('editModal');
+  function _typeOptions(cat, selected){
+    const map2 = cat==='facility' ? FACILITY_TYPES : cat==='hazard' ? HAZARD_TYPES : HELP_TYPES;
+    return Object.entries(map2).map(([k,v]) => `<option value="${k}" ${k===selected?'selected':''}>${v.emoji?v.emoji+' ':''}${v.label}</option>`).join('');
+  }
+  window.editPoint = function(id){
+    const r = allPoints.find(x => x.id === id); if (!r) return;
+    document.getElementById('eId').value = r.id;
+    document.getElementById('eCategory').value = r.category || 'request';
+    document.getElementById('eType').innerHTML = _typeOptions(r.category || 'request', r.help_type);
+    document.getElementById('eName').value = r.name || '';
+    document.getElementById('ePhone').value = r.phone || '';
+    document.getElementById('ePeople').value = r.people_count || 0;
+    document.getElementById('eBed').value = r.bedridden || 0;
+    document.getElementById('eDetails').value = r.details || '';
+    document.getElementById('eStatus').value = (r.status === 'helped') ? 'helped' : 'pending';
+    map.closePopup();
+    _editModal.style.display = 'flex';
+  };
+  document.getElementById('eCategory').addEventListener('change', e => {
+    document.getElementById('eType').innerHTML = _typeOptions(e.target.value);
+  });
+  document.getElementById('eCancel').addEventListener('click', () => _editModal.style.display = 'none');
+  _editModal.addEventListener('click', e => { if (e.target === _editModal) _editModal.style.display = 'none'; });
+  document.getElementById('eSave').addEventListener('click', async () => {
+    const id = document.getElementById('eId').value;
+    const cat = document.getElementById('eCategory').value;
+    const isReq = (cat === 'request');
+    const patch = {
+      category: cat,
+      help_type: document.getElementById('eType').value,
+      name: document.getElementById('eName').value.trim(),
+      phone: document.getElementById('ePhone').value.trim(),
+      people_count: isReq ? (parseInt(document.getElementById('ePeople').value) || 0) : 0,
+      bedridden: isReq ? (parseInt(document.getElementById('eBed').value) || 0) : 0,
+      details: document.getElementById('eDetails').value.trim(),
+      status: document.getElementById('eStatus').value
+    };
+    const b = document.getElementById('eSave'); b.disabled = true; b.textContent = '⏳ ກຳລັງບັນທຶກ...';
+    const { error } = await supa.from('requests').update(patch).eq('id', id);
+    b.disabled = false; b.textContent = '💾 ບັນທຶກ';
+    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message, "err"); return; }
+    showToast("ບັນທຶກແລ້ວ ✓", "ok");
+    _editModal.style.display = 'none';
+    loadRequests();
+  });
+  window.deletePoint = async function(id){
+    if (!confirm("ຕ້ອງການລົບຈຸດນີ້ແທ້ບໍ່? ການລົບຈະກູ້ຄືນບໍ່ໄດ້.")) return;
+    const { error } = await supa.from('requests').delete().eq('id', id);
+    if (error){ console.error(error); showToast("ລົບບໍ່ໄດ້: " + error.message + " (ຕ້ອງ login admin)", "err"); return; }
+    map.closePopup();
+    showToast("ລົບແລ້ວ ✓", "ok");
+    loadRequests();
+  };
 
-/* ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ (ປຸ່ມ GPS ເທິງແຜນທີ່) */
-function locateMe(){
-const btn = document.getElementById('locateBtn');
-if (!navigator.geolocation){ showToast("ບຣາວເຊີ/ອຸປະກອນ ບໍ່ຮອງຮັບ GPS", "err"); return; }
-const old = btn.innerHTML; btn.innerHTML = '⏳';
-navigator.geolocation.getCurrentPosition(
-(pos) => {
-const { latitude, longitude } = pos.coords;
-map.setView([latitude, longitude], 16);
-if (youHere) map.removeLayer(youHere);
-youHere = L.circleMarker([latitude, longitude], {
-radius: 9, color: '#1d6fb8', weight: 3, fillColor: '#4a9eff', fillOpacity: .9
-}).addTo(map).bindPopup('📍 ທ່ານຢູ່ນີ້').openPopup();
-btn.innerHTML = old;
-},
-(err) => {
-btn.innerHTML = old;
-showToast("ດຶງ GPS ບໍ່ໄດ້ — ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງຕຳແໜ່ງ", "err");
-console.warn('locateMe:', err.code, err.message);
-},
-{ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-);
-}
-document.getElementById('locateBtn').addEventListener('click', locateMe);
+  /* ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ (ປຸ່ມ GPS ເທິງແຜນທີ່) */
+  function locateMe(){
+    const btn = document.getElementById('locateBtn');
+    if (!navigator.geolocation){ showToast("ບຣາວເຊີ/ອຸປະກອນ ບໍ່ຮອງຮັບ GPS", "err"); return; }
+    const old = btn.innerHTML; btn.innerHTML = '⏳';
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        map.setView([latitude, longitude], 16);
+        if (youHere) map.removeLayer(youHere);
+        youHere = L.circleMarker([latitude, longitude], {
+          radius: 9, color: '#1d6fb8', weight: 3, fillColor: '#4a9eff', fillOpacity: .9
+        }).addTo(map).bindPopup('📍 ທ່ານຢູ່ນີ້').openPopup();
+        btn.innerHTML = old;
+      },
+      (err) => {
+        btn.innerHTML = old;
+        showToast("ດຶງ GPS ບໍ່ໄດ້ — ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງຕຳແໜ່ງ", "err");
+        console.warn('locateMe:', err.code, err.message);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+  }
+  document.getElementById('locateBtn').addEventListener('click', locateMe);
 
-/* ============================================================
-    8) ຕົວຊ່ວຍ (Utilities)
-    ============================================================ */
-function updateCount(n){ document.getElementById('countBadge').textContent = `📍 ໝຸດທັງໝົດ: ${n}`; }
+  /* ============================================================
+     8) ຕົວຊ່ວຍ (Utilities)
+     ============================================================ */
+  function updateCount(n){ document.getElementById('countBadge').textContent = `📍 ໝຸດທັງໝົດ: ${n}`; }
 
-function formatTime(iso){
-if(!iso) return "-";
-const d = new Date(iso);
-const pad = x => String(x).padStart(2,'0');
-return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+  function formatTime(iso){
+    if(!iso) return "-";
+    const d = new Date(iso);
+    const pad = x => String(x).padStart(2,'0');
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
 
-function escapeHtml(s){
-return String(s).replace(/[&<>"']/g, m => (
-{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]
-));
-}
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => (
+      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]
+    ));
+  }
 
-let toastTimer;
-function showToast(msg, type=""){
-const t = document.getElementById('toast');
-t.textContent = msg;
-t.className = "toast show " + type;
-clearTimeout(toastTimer);
-toastTimer = setTimeout(()=> t.className = "toast " + type, 3200);
-}
+  let toastTimer;
+  function showToast(msg, type=""){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = "toast show " + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> t.className = "toast " + type, 3200);
+  }
 
-/* ເປີດ/ປິດ ແຜງຟອມ (ມືຖື) */
-const panel = document.getElementById('panel');
-function openPanel(){ panel.classList.add('open'); }
-function closePanel(){ panel.classList.remove('open'); }
-document.getElementById('openFormBtn').addEventListener('click', openPanel);
-document.getElementById('closeBtn').addEventListener('click', closePanel);
+  /* ເປີດ/ປິດ ແຜງຟອມ (ມືຖື) */
+  const panel = document.getElementById('panel');
+  function openPanel(){ panel.classList.add('open'); }
+  function closePanel(){ panel.classList.remove('open'); }
+  document.getElementById('openFormBtn').addEventListener('click', openPanel);
+  document.getElementById('closeBtn').addEventListener('click', closePanel);
 
-/* ============================================================
-    9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
-    ============================================================ */
-function syncChips(){
-document.querySelectorAll('.filterbar .chip').forEach(chip => {
-chip.classList.toggle('active', chip.dataset.f === activeFilter);
-});
-}
-document.querySelectorAll('.filterbar .chip').forEach(chip => {
-chip.addEventListener('click', () => {
-activeFilter = chip.dataset.f;   // ເລືອກປະເພດທີ່ກົດ ('all' = ໝົດ)
-syncChips();
-renderMarkers();
-});
-});
-syncChips();
+  /* ============================================================
+     9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
+     ============================================================ */
+  function syncChips(){
+    document.querySelectorAll('.filterbar .chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.f === activeFilter);
+    });
+  }
+  document.querySelectorAll('.filterbar .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      activeFilter = chip.dataset.f;   // ເລືອກປະເພດທີ່ກົດ ('all' = ໝົດ)
+      syncChips();
+      renderMarkers();
+    });
+  });
+  syncChips();
 
-/* ============================================================
-    10) ກວດສະຖານະ login (ແບ່ງໃຊ້ session ດຽວກັນກັບ admin.html)
-    ============================================================ */
-if (isConfigured){
-supa.auth.getSession().then(({ data }) => {
-isAdmin = !!(data && data.session);
-renderMarkers();   // ວາດໃໝ່ ເພື່ອສະແດງ/ເຊື່ອງ ປຸ່ມ admin
-});
-supa.auth.onAuthStateChange((_event, session) => {
-isAdmin = !!session;
-renderMarkers();
-});
-}
+  /* ============================================================
+     10) ກວດສະຖານະ login (ແບ່ງໃຊ້ session ດຽວກັນກັບ admin.html)
+     ============================================================ */
+  if (isConfigured){
+    supa.auth.getSession().then(({ data }) => {
+      isAdmin = !!(data && data.session);
+      renderMarkers();   // ວາດໃໝ່ ເພື່ອສະແດງ/ເຊື່ອງ ປຸ່ມ admin
+    });
+    supa.auth.onAuthStateChange((_event, session) => {
+      isAdmin = !!session;
+      renderMarkers();
+    });
+  }
 
-/* ============================================================
-    11) ເລີ່ມຕົ້ນ
-    ============================================================ */
-applyCategoryUI('request');
-loadRequests();
+  /* ============================================================
+     11) ເລີ່ມຕົ້ນ
+     ============================================================ */
+  applyCategoryUI('request');
+  loadRequests();
 
-/* ============================================================
-    12) ດຶງພິກັດປັດຈຸບັນອັດຕະໂນມັດ ຕອນເປີດເວັບ
-    ============================================================ */
-(function autoLocate(){
-if (!navigator.geolocation) return;
-navigator.geolocation.getCurrentPosition(
-(pos) => {
-const { latitude, longitude, accuracy } = pos.coords;
-map.setView([latitude, longitude], 16);
-setSelected(latitude, longitude);   // ຕັ້ງເປັນຈຸດ ພ້ອມແຈ້ງເຫດເລີຍ
-const acc = Math.round(accuracy || 0);
-showToast(`📍 ດຶງພິກັດປັດຈຸບັນແລ້ວ (±${acc} ມ.)`, "ok");
-},
-(err) => {
-// ບໍ່ອະນຸຍາດ / ຫາບໍ່ພົບ — ຄົງໄວ້ທີ່ວຽງຈັນ, ບໍ່ຂຶ້ນ error ລົບກວນ
-console.warn('auto-locate:', err.code, err.message);
-},
-{ enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
-);
-})();
-</script>
+  /* ============================================================
+     12) ດຶງພິກັດປັດຈຸບັນອັດຕະໂນມັດ ຕອນເປີດເວັບ
+     ============================================================ */
+  (function autoLocate(){
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        map.setView([latitude, longitude], 16);
+        setSelected(latitude, longitude);   // ຕັ້ງເປັນຈຸດ ພ້ອມແຈ້ງເຫດເລີຍ
+        const acc = Math.round(accuracy || 0);
+        showToast(`📍 ດຶງພິກັດປັດຈຸບັນແລ້ວ (±${acc} ມ.)`, "ok");
+      },
+      (err) => {
+        // ບໍ່ອະນຸຍາດ / ຫາບໍ່ພົບ — ຄົງໄວ້ທີ່ວຽງຈັນ, ບໍ່ຂຶ້ນ error ລົບກວນ
+        console.warn('auto-locate:', err.code, err.message);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+    );
+  })();
+  </script>
 </body>
 </html>
