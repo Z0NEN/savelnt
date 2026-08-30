@@ -297,7 +297,7 @@
      1) ຕັ້ງຄ່າ SUPABASE  —  ໃສ່ຄ່າຂອງທ່ານທີ່ນີ້
         ຫາໄດ້ຈາກ: Supabase Dashboard -> Project Settings -> API
      ============================================================ */
-  const SUPABASE_URL = "https://tbwignuwbinkcaczunly.supabase.co";       // ຕົວຢ່າງ: https://abcdxyz.supabase.co
+  const SUPABASE_URL = "https://tbwignuwbinkcaczunly.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRid2lnbnV3Ymlua2NhY3p1bmx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNzY3OTYsImV4cCI6MjEwMzY1Mjc5Nn0.7Yx5xQLs79SyrOvCJxeyPdIILGGMGbNuTCz-zUbGsaM";
 
   const isConfigured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
@@ -726,6 +726,27 @@
      ============================================================ */
   applyCategoryUI('request');
   loadRequests();
+
+  /* ============================================================
+     12) ດຶງພິກັດປັດຈຸບັນອັດຕະໂນມັດ ຕອນເປີດເວັບ
+     ============================================================ */
+  (function autoLocate(){
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        map.setView([latitude, longitude], 16);
+        setSelected(latitude, longitude);   // ຕັ້ງເປັນຈຸດ ພ້ອມແຈ້ງເຫດເລີຍ
+        const acc = Math.round(accuracy || 0);
+        showToast(`📍 ດຶງພິກັດປັດຈຸບັນແລ້ວ (±${acc} ມ.)`, "ok");
+      },
+      (err) => {
+        // ບໍ່ອະນຸຍາດ / ຫາບໍ່ພົບ — ຄົງໄວ້ທີ່ວຽງຈັນ, ບໍ່ຂຶ້ນ error ລົບກວນ
+        console.warn('auto-locate:', err.code, err.message);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+    );
+  })();
   </script>
 </body>
 </html>
