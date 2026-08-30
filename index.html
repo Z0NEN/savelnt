@@ -252,7 +252,13 @@
 
     <!-- Floating buttons -->
     <div class="fab-wrap">
-      <button class="fab gps" id="locateBtn" title="ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ">📍</button>
+      <button class="fab gps" id="locateBtn" title="ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ" aria-label="GPS">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1d6fb8" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3.5"/>
+          <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+        </svg>
+      </button>
       <div class="fab count" id="countBadge">📍 ໝຸດທັງໝົດ: 0</div>
       <button class="fab add" id="openFormBtn">➕ ແຈ້ງເຫດ</button>
     </div>
@@ -827,63 +833,69 @@
   /* ໝຸດ "ອັນຕະລາຍ / ເສັ້ນທາງ" (ຮູບວົງມົນ + emoji) */
   function addHazardMarker(r){
     const h = HAZARD_TYPES[r.help_type] || HAZARD_TYPES.road_blocked;
-    const marker = L.marker([r.lat, r.lng], { icon: makeHazardIcon(h.emoji, h.color) });
+    const resolved = (r.status === 'helped');   // ໄປໄດ້ແລ້ວ / ຄືນປົກກະຕິ
+    const iconColor = resolved ? '#16a34a' : h.color;
+    const marker = L.marker([r.lat, r.lng], { icon: makeHazardIcon(h.emoji, iconColor) });
     const time = formatTime(r.created_at);
     const phoneHtml = r.phone
       ? `<div class="popup-row"><b>📞 ໂທ:</b> <a href="tel:${r.phone}">${escapeHtml(r.phone)}</a></div>` : "";
     const detailHtml = r.details
       ? `<div class="popup-row"><b>📋</b> ${escapeHtml(r.details)}</div>` : "";
+
+    const stateHtml = resolved
+      ? `<div class="popup-state helped">✅ ໄປໄດ້ແລ້ວ / ຄືນສູ່ປົກກະຕິ</div>`
+      : `<div class="popup-state pending">⚠️ ຍັງເປັນອັນຕະລາຍ / ໄປບໍ່ໄດ້</div>`;
+    let actionHtml = "";
+    if (r.id && !resolved) {
+      actionHtml = `<button class="popup-btn" onclick="markPassable('${r.id}', this)">✅ ໝາຍວ່າ ໄປໄດ້ແລ້ວ</button>
+        <div style="font-size:10.5px;color:#888;text-align:center;margin-top:3px;">ກົດເມື່ອ ເສັ້ນທາງໃຊ້ໄດ້ / ຄືນປົກກະຕິ</div>`;
+    } else if (r.id && resolved) {
+      actionHtml = `<button class="popup-btn undo" onclick="markBlocked('${r.id}', this)">↩ ແກ້ຄືນ ຍັງໄປບໍ່ໄດ້</button>`;
+    }
+
     marker.bindPopup(`
       <div class="popup-title">${h.emoji} ${escapeHtml(r.name || h.label)}</div>
-      <span class="popup-badge" style="background:${h.color}">${h.label}</span>
+      <span class="popup-badge" style="background:${iconColor}">${h.label}</span>
+      ${stateHtml}
       ${phoneHtml}
       ${detailHtml}
       ${photoHtml(r)}
       <div class="popup-time">🕒 ແຈ້ງເມື່ອ: ${time}</div>
       ${navButton(r.lat, r.lng)}
+      ${actionHtml}
     `);
     marker.addTo(markersLayer);
   }
 
-  /* ໝາຍວ່າ "ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ" — UPDATE ສະຖານະໃນ Supabase */
-  window.markHelped = async function(id, btnEl){
+  /* UPDATE ສະຖານະໃນ Supabase (ໃຊ້ຮ່ວມກັນ) */
+  async function updateStatus(id, status, btnEl, msgs){
     if (!isConfigured){ showToast("ຕ້ອງຕັ້ງຄ່າ Supabase ກ່ອນ ຈຶ່ງອັບເດດໄດ້", "err"); return; }
-    if (!confirm("ຢືນຢັນວ່າ ຈຸດນີ້ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວແທ້ບໍ່?")) return;
+    if (msgs.confirm && !confirm(msgs.confirm)) return;
+    const orig = btnEl ? btnEl.innerHTML : null;
     if (btnEl){ btnEl.disabled = true; btnEl.textContent = "⏳ ກຳລັງອັບເດດ..."; }
-    const { error } = await supa.from('requests').update({ status: 'helped' }).eq('id', id);
+    const { error } = await supa.from('requests').update({ status }).eq('id', id);
     if (error){
       console.error(error);
       showToast("ອັບເດດບໍ່ໄດ້: " + error.message, "err");
-      if (btnEl){ btnEl.disabled = false; btnEl.textContent = "✅ ໝາຍວ່າ ໄດ້ຊ່ວຍແລ້ວ"; }
+      if (btnEl){ btnEl.disabled = false; btnEl.innerHTML = orig; }
       return;
     }
     map.closePopup();
-    showToast("ອັບເດດເປັນ 'ຊ່ວຍເຫຼືອແລ້ວ' ✓", "ok");
+    showToast(msgs.ok, "ok");
     loadRequests();
-  };
-
-  /* ແກ້ຄືນ (ຫາກກົດຫຼົງ) — ກັບເປັນ "ຍັງບໍ່ໄດ້ຊ່ວຍ" */
-  window.markPending = async function(id, btnEl){
-    if (!isConfigured){ showToast("ຕ້ອງຕັ້ງຄ່າ Supabase ກ່ອນ", "err"); return; }
-    if (!confirm("ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ບໍ່?")) return;
-    if (btnEl){ btnEl.disabled = true; btnEl.textContent = "⏳ ກຳລັງອັບເດດ..."; }
-    const { error } = await supa.from('requests').update({ status: 'pending' }).eq('id', id);
-    if (error){
-      console.error(error);
-      showToast("ອັບເດດບໍ່ໄດ້: " + error.message, "err");
-      if (btnEl){ btnEl.disabled = false; btnEl.textContent = "↩ ແກ້ຄືນ ຍັງບໍ່ໄດ້ຊ່ວຍ"; }
-      return;
-    }
-    map.closePopup();
-    showToast("ແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ✓", "ok");
-    loadRequests();
-  };
+  }
+  // ຄຳຮ້ອງ: ຊ່ວຍແລ້ວ / ແກ້ຄືນ
+  window.markHelped  = (id, b) => updateStatus(id, 'helped',  b, { confirm:"ຢືນຢັນວ່າ ຈຸດນີ້ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວແທ້ບໍ່?", ok:"ອັບເດດເປັນ 'ຊ່ວຍເຫຼືອແລ້ວ' ✓" });
+  window.markPending = (id, b) => updateStatus(id, 'pending', b, { confirm:"ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ບໍ່?", ok:"ແກ້ຄືນເປັນ 'ຍັງບໍ່ໄດ້ຊ່ວຍ' ✓" });
+  // ອັນຕະລາຍ/ເສັ້ນທາງ: ໄປໄດ້ແລ້ວ / ແກ້ຄືນ
+  window.markPassable = (id, b) => updateStatus(id, 'helped',  b, { confirm:"ຢືນຢັນວ່າ ເສັ້ນທາງ/ຈຸດນີ້ ໄປໄດ້ / ຄືນສູ່ປົກກະຕິແລ້ວແທ້ບໍ່?", ok:"ອັບເດດເປັນ 'ໄປໄດ້ແລ້ວ' ✓" });
+  window.markBlocked  = (id, b) => updateStatus(id, 'pending', b, { confirm:"ຕ້ອງການແກ້ຄືນເປັນ 'ຍັງໄປບໍ່ໄດ້' ບໍ່?", ok:"ແກ້ຄືນເປັນ 'ຍັງໄປບໍ່ໄດ້' ✓" });
 
   /* ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ (ປຸ່ມ GPS ເທິງແຜນທີ່) */
   function locateMe(){
     const btn = document.getElementById('locateBtn');
     if (!navigator.geolocation){ showToast("ບຣາວເຊີ/ອຸປະກອນ ບໍ່ຮອງຮັບ GPS", "err"); return; }
-    const old = btn.textContent; btn.textContent = '⏳';
+    const old = btn.innerHTML; btn.innerHTML = '⏳';
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -892,10 +904,10 @@
         youHere = L.circleMarker([latitude, longitude], {
           radius: 9, color: '#1d6fb8', weight: 3, fillColor: '#4a9eff', fillOpacity: .9
         }).addTo(map).bindPopup('📍 ທ່ານຢູ່ນີ້').openPopup();
-        btn.textContent = old;
+        btn.innerHTML = old;
       },
       (err) => {
-        btn.textContent = old;
+        btn.innerHTML = old;
         showToast("ດຶງ GPS ບໍ່ໄດ້ — ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງຕຳແໜ່ງ", "err");
         console.warn('locateMe:', err.code, err.message);
       },
