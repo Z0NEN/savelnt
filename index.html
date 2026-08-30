@@ -143,7 +143,7 @@
     .popup-row{font-size:12.5px;margin:2px 0;color:#333;}
     .popup-row b{color:#111;}
     .popup-time{font-size:11px;color:var(--muted);margin-top:6px;}
-    .leaflet-popup-content{margin:12px 14px;min-width:190px;max-height:60vh;overflow-y:auto;}
+    .leaflet-popup-content{margin:12px 14px;min-width:190px;}
     .popup-btn{
       display:block;width:100%;margin-top:9px;padding:9px;border:none;border-radius:9px;
       background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
@@ -185,23 +185,18 @@
       100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}
     }
 
-    /* Filter bar (chips) — ຈັດເປັນ 2 ແຖວ ໂດຍບໍ່ກະທົບ marker ເກົ່າ */
+    /* Filter bar (chips) */
     .filterbar{
       position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1001;
-      display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;
-      width:min(680px,94vw);padding:7px;background:rgba(255,255,255,.92);
-      border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(4px);
+      display:flex;gap:7px;max-width:94vw;overflow-x:auto;padding:6px;background:rgba(255,255,255,.92);
+      border-radius:40px;box-shadow:var(--shadow);backdrop-filter:blur(4px);-webkit-overflow-scrolling:touch;
     }
+    .filterbar::-webkit-scrollbar{display:none;}
     .chip{
-      min-width:0;padding:7px 8px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
+      flex:0 0 auto;padding:7px 13px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
       font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
-      overflow:hidden;text-overflow:ellipsis;
     }
     .chip.active{background:#1d6fb8;color:#fff;}
-    @media (max-width:640px){
-      .filterbar{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:min(320px,92vw);top:8px;padding:6px;border-radius:14px;}
-      .chip{font-size:12px;padding:6px 7px;}
-    }
 
     .config-warn{
       background:#fff3cd;border:1px solid #ffe08a;color:#8a6d00;font-size:12px;
@@ -236,7 +231,7 @@
   <div class="layout">
     <div id="map"></div>
 
-    <!-- Filter bar (2 rows) -->
+    <!-- Filter bar (chips) -->
     <div class="filterbar" id="filterbar">
       <button class="chip active" data-f="all">ທັງໝົດ</button>
       <button class="chip" data-f="request">🆘 ຄຳຮ້ອງ</button>
@@ -958,18 +953,11 @@
 
   /* ===== ແກ້ໄຂ / ລົບ (ສະເພາະ admin ທີ່ login) ===== */
   function adminButtons(r){
-    if (!r.id) return '';
-    const cat = r.category || 'request';
-    let btns = '';
-    // ແກ້ໄຂ: ຈຸດບໍລິການ/ອັນຕະລາຍ = ທຸກຄົນ; ຄຳຮ້ອງ SOS = admin ເທົ່ານັ້ນ
-    if (cat !== 'request' || isAdmin) {
-      btns += `<button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>`;
-    }
-    // ລົບ: admin ເທົ່ານັ້ນ
-    if (isAdmin) {
-      btns += `<button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>`;
-    }
-    return btns ? `<div style="display:flex;gap:6px;margin-top:8px;">${btns}</div>` : '';
+    if (!isAdmin || !r.id) return '';
+    return `<div style="display:flex;gap:6px;margin-top:8px;">
+      <button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>
+      <button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>
+    </div>`;
   }
   const _editModal = document.getElementById('editModal');
   function _typeOptions(cat, selected){
@@ -1012,7 +1000,7 @@
     const b = document.getElementById('eSave'); b.disabled = true; b.textContent = '⏳ ກຳລັງບັນທຶກ...';
     const { error } = await supa.from('requests').update(patch).eq('id', id);
     b.disabled = false; b.textContent = '💾 ບັນທຶກ';
-    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message, "err"); return; }
+    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message + " (ຕ້ອງ login admin)", "err"); return; }
     showToast("ບັນທຶກແລ້ວ ✓", "ok");
     _editModal.style.display = 'none';
     loadRequests();
@@ -1085,9 +1073,9 @@
   document.getElementById('openFormBtn').addEventListener('click', openPanel);
   document.getElementById('closeBtn').addEventListener('click', closePanel);
 
-   /* ============================================================
-      9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
-      ============================================================ */
+  /* ============================================================
+     9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
+     ============================================================ */
   function syncChips(){
     document.querySelectorAll('.filterbar .chip').forEach(chip => {
       chip.classList.toggle('active', chip.dataset.f === activeFilter);
