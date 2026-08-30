@@ -29,6 +29,11 @@
     header .logo{font-size:24px;}
     header h1{font-size:17px;margin:0;font-weight:700;line-height:1.2;}
     header p{margin:0;font-size:12px;opacity:.9;}
+    .admin-link{
+      margin-left:auto;color:#fff;text-decoration:none;font-size:13px;font-weight:700;
+      background:rgba(255,255,255,.18);padding:8px 12px;border-radius:20px;white-space:nowrap;
+    }
+    .admin-link:active{background:rgba(255,255,255,.3);}
 
     .layout{flex:1;display:flex;min-height:0;position:relative;}
     #map{flex:1;height:100%;width:100%;z-index:1;}
@@ -123,9 +128,11 @@
     .popup-btn{
       display:block;width:100%;margin-top:9px;padding:9px;border:none;border-radius:9px;
       background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
+      text-align:center;text-decoration:none;box-sizing:border-box;
     }
     .popup-btn:active{transform:scale(.98);}
     .popup-btn:disabled{opacity:.6;cursor:not-allowed;}
+    a.popup-btn.nav{background:var(--blue);color:#fff;}
     .popup-status.done{
       margin-top:9px;padding:8px;border-radius:9px;background:#eaf7f4;color:#1d7a6e;
       font-size:12.5px;font-weight:700;text-align:center;
@@ -168,6 +175,7 @@
       <h1>ແຈ້ງເຫດຂໍຄວາມຊ່ວຍເຫຼືອ</h1>
       <p>ລະບົບປັກໝຸດຜູ້ປະສົບໄພນ້ຳທ່ວມ</p>
     </div>
+    <a href="admin.html" class="admin-link">🛠️ Admin</a>
   </header>
 
   <div class="layout">
@@ -289,6 +297,7 @@
 
   const isConfigured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
   let supa = null;
+  let isAdmin = false;   // ເປັນ true ເມື່ອ admin login ຢູ່ (ຜ່ານ admin.html, browser ດຽວກັນ)
   if (isConfigured) {
     supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   } else {
@@ -572,9 +581,11 @@
     let statusHtml = "";
     if (helped) {
       statusHtml = `<div class="popup-status done">✅ ໄດ້ຮັບການຊ່ວຍເຫຼືອແລ້ວ</div>`;
-    } else if (r.id) {
+    } else if (r.id && isAdmin) {
+      // ສະແດງປຸ່ມ "ຊ່ວຍແລ້ວ" ສະເພາະ admin ທີ່ login ແລ້ວ (ອັບເດດຕ້ອງມີສິດ)
       statusHtml = `<button class="popup-btn" onclick="markHelped('${r.id}', this)">✅ ໝາຍວ່າຊ່ວຍເຫຼືອແລ້ວ</button>`;
     }
+    const navHtml = navButton(r.lat, r.lng);
 
     marker.bindPopup(`
       <div class="popup-title">${escapeHtml(r.name || 'ບໍ່ລະບຸຊື່')}</div>
@@ -584,9 +595,16 @@
       ${bedHtml}
       ${detailHtml}
       <div class="popup-time">🕒 ແຈ້ງເຫດເມື່ອ: ${time}</div>
+      ${navHtml}
       ${statusHtml}
     `);
     marker.addTo(markersLayer);
+  }
+
+  /* ປຸ່ມນຳທາງໄປ Google Maps */
+  function navButton(lat, lng){
+    return `<a class="popup-btn nav" target="_blank" rel="noopener"
+      href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}">🗺️ ນຳທາງໄປຫາໝຸດ</a>`;
   }
 
   /* ໝຸດ "ຈຸດບໍລິການ" (ຮູບສີ່ຫຼ່ຽມ + emoji) */
@@ -604,6 +622,7 @@
       ${phoneHtml}
       ${detailHtml}
       <div class="popup-time">🕒 ອັບເດດເມື່ອ: ${time}</div>
+      ${navButton(r.lat, r.lng)}
     `);
     marker.addTo(markersLayer);
   }
@@ -684,7 +703,21 @@
   });
 
   /* ============================================================
-     10) ເລີ່ມຕົ້ນ
+     10) ກວດສະຖານະ login (ແບ່ງໃຊ້ session ດຽວກັນກັບ admin.html)
+     ============================================================ */
+  if (isConfigured){
+    supa.auth.getSession().then(({ data }) => {
+      isAdmin = !!(data && data.session);
+      renderMarkers();   // ວາດໃໝ່ ເພື່ອສະແດງ/ເຊື່ອງ ປຸ່ມ admin
+    });
+    supa.auth.onAuthStateChange((_event, session) => {
+      isAdmin = !!session;
+      renderMarkers();
+    });
+  }
+
+  /* ============================================================
+     11) ເລີ່ມຕົ້ນ
      ============================================================ */
   applyCategoryUI('request');
   loadRequests();

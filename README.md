@@ -28,9 +28,21 @@ HTML5, CSS3, Vanilla JavaScript, [Leaflet.js](https://leafletjs.com/), [Supabase
 
 | ໄຟລ໌ | ລາຍລະອຽດ |
 |------|----------|
-| `index.html` | ຕົວເວັບແອັບ (ໄຟລ໌ດຽວ) |
-| `supabase_schema.sql` | SQL ສ້າງຕາຕະລາງ `requests` |
+| `index.html` | ຕົວເວັບແອັບແຜນທີ່ (ໜ້າຫຼັກ) |
+| `admin.html` | ໜ້າຈັດການ Admin (ອັບເດດສະຖານະ / ລົບ / ຄົ້ນຫາ) |
+| `supabase_schema.sql` | SQL ສ້າງຕາຕະລາງ `requests` + policies |
 | `start-server.bat` | ເປີດ local web server ສຳລັບທົດລອງ |
+
+## 🛠️ ໜ້າ Admin (`admin.html`) — ໃຊ້ Supabase Auth ຈິງ
+
+ເປີດຈາກປຸ່ມ **🛠️ Admin** ເທິງໜ້າແຜນທີ່. ໃສ່ຄ່າ `SUPABASE_URL`, `SUPABASE_ANON_KEY` (ດຽວກັນກັບ `index.html`). Admin ຕ້ອງ **login ດ້ວຍ Email/ລະຫັດຜ່ານ** ຈຶ່ງຈັດການໄດ້: ໝາຍ "ຊ່ວຍແລ້ວ", ນຳທາງ (Google Maps), ຄົ້ນຫາ/ກັ່ນຕອງ, ແລະ ລົບໝຸດ.
+
+**ຄວາມປອດໄພ (RLS):** ປະຊາຊົນທົ່ວໄປ (anon) ພຽງແຕ່ **ອ່ານ + ແຈ້ງເຫດ** ໄດ້; ການ **ອັບເດດ/ລົບ** ອະນຸຍາດສະເພາະ admin ທີ່ login ແລ້ວ. ໃນໜ້າແຜນທີ່ ປຸ່ມ "ໝາຍວ່າຊ່ວຍເຫຼືອແລ້ວ" ຈະສະແດງກໍຕໍ່ເມື່ອ admin login ຢູ່ (browser ດຽວກັນ) ເທົ່ານັ້ນ.
+
+**ສ້າງ Admin User (ເຮັດເທື່ອດຽວ):**
+1. Supabase Dashboard → **Authentication → Users → Add user** → ໃສ່ Email + Password (ຕິກ *Auto Confirm User*)
+2. (ແນະນຳ) Authentication → Providers → Email → ປິດ *Allow new users to sign up*
+3. ໃຊ້ Email/Password ນັ້ນ login ໃນ `admin.html`
 
 ## 📄 License
 

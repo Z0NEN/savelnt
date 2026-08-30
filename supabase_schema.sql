@@ -47,13 +47,32 @@ create policy "public can insert requests"
   to anon, authenticated
   with check (true);
 
--- ອະນຸຍາດໃຫ້ອັບເດດ (UPDATE) — ໃຊ້ສຳລັບປຸ່ມ "ໝາຍວ່າຊ່ວຍເຫຼືອແລ້ວ"
+-- ==== ຄວາມປອດໄພ (Supabase Auth) ====
+-- UPDATE ແລະ DELETE ອະນຸຍາດ "ສະເພາະຄົນທີ່ login ແລ້ວ (authenticated)" = admin ເທົ່ານັ້ນ
+-- (ລົບ policy ເກົ່າທີ່ເປີດໃຫ້ anon ອອກ)
 drop policy if exists "public can update requests" on public.requests;
-create policy "public can update requests"
+drop policy if exists "public can delete requests" on public.requests;
+
+-- ອະນຸຍາດ UPDATE ສະເພາະ admin ທີ່ login ແລ້ວ
+drop policy if exists "admin can update requests" on public.requests;
+create policy "admin can update requests"
   on public.requests for update
-  to anon, authenticated
+  to authenticated
   using (true)
   with check (true);
 
--- ໝາຍເຫດ: ບໍ່ໄດ້ເປີດ DELETE ໃຫ້ anon ເພື່ອປ້ອງກັນຄົນລົບຂໍ້ມູນຄົນອື່ນ
---         ຖ້າຕ້ອງການໃຫ້ admin ລົບ/ຈັດການເຕັມ ໃຫ້ໃຊ້ service_role key ຫຼື ສ້າງ policy ເພີ່ມຕາມສິດ
+-- ອະນຸຍາດ DELETE ສະເພາະ admin ທີ່ login ແລ້ວ
+drop policy if exists "admin can delete requests" on public.requests;
+create policy "admin can delete requests"
+  on public.requests for delete
+  to authenticated
+  using (true);
+
+-- ==================================================================
+--  ວິທີສ້າງ Admin User (ເຮັດເທື່ອດຽວ)
+--  1) Supabase Dashboard -> Authentication -> Users -> Add user
+--     ໃສ່ Email + Password ຂອງ admin  (ຕິກ Auto Confirm User)
+--  2) (ແນະນຳ) Authentication -> Providers -> Email -> ປິດ "Allow new users to sign up"
+--     ເພື່ອບໍ່ໃຫ້ຄົນອື່ນສະໝັກເອງ (ໃຫ້ສ້າງ user ຜ່ານ Dashboard ເທົ່ານັ້ນ)
+--  3) ໃຊ້ Email/Password ນັ້ນ login ໃນໜ້າ admin.html
+-- ==================================================================

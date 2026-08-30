@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ໜ້າຈັດການ (Admin) - Save LNT</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      --red:#e63946; --green:#2a9d8f; --blue:#1d6fb8; --bg:#f4f6f8;
+      --card:#fff; --text:#1f2933; --muted:#6b7280; --line:#e6e9ee;
+      --shadow:0 4px 18px rgba(0,0,0,.10);
+    }
+    *{box-sizing:border-box;}
+    html,body{margin:0;font-family:'Noto Sans Lao','Phetsarath OT',system-ui,sans-serif;background:var(--bg);color:var(--text);}
+
+    header{
+      background:linear-gradient(135deg,#1d6fb8,#2a9d8f);color:#fff;
+      padding:14px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);
+    }
+    header h1{font-size:17px;margin:0;font-weight:700;}
+    header a{margin-left:auto;color:#fff;text-decoration:none;font-size:13px;font-weight:700;
+      background:rgba(255,255,255,.18);padding:8px 12px;border-radius:20px;}
+
+    .wrap{max-width:1100px;margin:0 auto;padding:16px;}
+
+    /* Login */
+    .login{max-width:360px;margin:60px auto;background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:26px;text-align:center;}
+    .login h2{margin:0 0 6px;font-size:18px;}
+    .login p{color:var(--muted);font-size:13px;margin:0 0 18px;}
+    .login input{width:100%;padding:12px;border:1px solid #d4d8dd;border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:12px;}
+    .login button{width:100%;padding:12px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;}
+
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+    .stat{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;}
+    .stat .num{font-size:26px;font-weight:800;line-height:1;}
+    .stat .lbl{font-size:12.5px;color:var(--muted);margin-top:6px;}
+    .stat.red .num{color:var(--red);} .stat.green .num{color:var(--green);} .stat.blue .num{color:var(--blue);}
+
+    /* Toolbar */
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center;}
+    .toolbar select,.toolbar input{padding:10px 12px;border:1px solid #d4d8dd;border-radius:10px;font-size:14px;font-family:inherit;background:#fff;}
+    .toolbar input[type=search]{flex:1;min-width:160px;}
+    .toolbar .refresh{margin-left:auto;padding:10px 14px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-weight:700;font-family:inherit;cursor:pointer;}
+
+    /* Table */
+    .table-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;min-width:820px;}
+    th,td{padding:11px 12px;text-align:left;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;}
+    th{background:#fafbfc;font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap;position:sticky;top:0;}
+    tr:hover td{background:#fbfcfe;}
+    .badge{display:inline-block;color:#fff;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+    .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+    .pill.pending{background:#fdecea;color:#c0392b;}
+    .pill.helped{background:#eaf7f4;color:#1d7a6e;}
+    .actions{display:flex;gap:6px;flex-wrap:wrap;}
+    .act{border:none;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:none;color:#fff;display:inline-block;}
+    .act.done{background:var(--green);} .act.undo{background:#8a94a6;} .act.nav{background:var(--blue);} .act.del{background:var(--red);}
+    .muted{color:var(--muted);}
+    .empty{text-align:center;padding:36px;color:var(--muted);}
+    .cfg-warn{background:#fff3cd;border:1px solid #ffe08a;color:#8a6d00;font-size:13px;padding:12px 14px;border-radius:10px;margin-bottom:14px;}
+
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:#1f2933;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;z-index:3000;box-shadow:var(--shadow);transition:.35s;}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    .toast.err{background:var(--red);} .toast.ok{background:var(--green);}
+
+    @media (max-width:640px){
+      .stats{grid-template-columns:repeat(2,1fr);}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span>🛠️</span>
+    <h1>ໜ້າຈັດການ (Admin)</h1>
+    <span id="userEmail" style="margin-left:auto;font-size:12px;opacity:.9;"></span>
+    <a href="index.html">🗺️ ແຜນທີ່</a>
+    <button id="logoutBtn" style="display:none;border:none;cursor:pointer;color:#fff;font-family:inherit;font-size:13px;font-weight:700;background:rgba(0,0,0,.18);padding:8px 12px;border-radius:20px;">ອອກຈາກລະບົບ</button>
+  </header>
+
+  <!-- ໜ້າ Login -->
+  <div id="loginView" class="login">
+    <h2>🔒 ເຂົ້າສູ່ລະບົບ Admin</h2>
+    <p>ເຂົ້າສູ່ລະບົບດ້ວຍ Email / ລະຫັດຜ່ານ ຂອງ admin</p>
+    <input type="email" id="email" placeholder="Email" autocomplete="username" />
+    <input type="password" id="pwd" placeholder="ລະຫັດຜ່ານ" autocomplete="current-password" />
+    <button id="loginBtn">ເຂົ້າສູ່ລະບົບ</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashView" class="wrap" style="display:none;">
+    <div id="cfgWarn" class="cfg-warn" style="display:none;">
+      ⚠️ ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ Supabase — ໃສ່ <b>SUPABASE_URL</b> ແລະ <b>SUPABASE_ANON_KEY</b> ໃນໄຟລ໌ນີ້ກ່ອນ.
+    </div>
+
+    <div class="stats">
+      <div class="stat blue"><div class="num" id="stTotal">0</div><div class="lbl">📍 ໝຸດທັງໝົດ</div></div>
+      <div class="stat red"><div class="num" id="stPending">0</div><div class="lbl">🆘 ຄຳຮ້ອງ (ຍັງບໍ່ຊ່ວຍ)</div></div>
+      <div class="stat green"><div class="num" id="stHelped">0</div><div class="lbl">✅ ຊ່ວຍເຫຼືອແລ້ວ</div></div>
+      <div class="stat"><div class="num" id="stFacility">0</div><div class="lbl">🏠 ຈຸດບໍລິການ</div></div>
+    </div>
+
+    <div class="toolbar">
+      <select id="fCat">
+        <option value="all">ທຸກປະເພດ</option>
+        <option value="request">🆘 ຄຳຮ້ອງຊ່ວຍເຫຼືອ</option>
+        <option value="facility">📍 ຈຸດບໍລິການ</option>
+      </select>
+      <select id="fStatus">
+        <option value="all">ທຸກສະຖານະ</option>
+        <option value="pending">ຍັງບໍ່ຊ່ວຍ</option>
+        <option value="helped">ຊ່ວຍແລ້ວ</option>
+      </select>
+      <input type="search" id="fSearch" placeholder="🔎 ຄົ້ນຫາ ຊື່ / ເບີໂທ / ລາຍລະອຽດ..." />
+      <button class="refresh" id="refreshBtn">🔄 ໂຫຼດໃໝ່</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ເວລາ</th><th>ປະເພດ</th><th>ຊື່</th><th>ໂທ</th>
+            <th>ຄົນ</th><th>ລາຍລະອຽດ</th><th>ສະຖານະ</th><th>ຈັດການ</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div id="emptyMsg" class="empty" style="display:none;">— ບໍ່ມີຂໍ້ມູນ —</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  /* ============================================================
+     ຕັ້ງຄ່າ — ໃສ່ຄ່າດຽວກັນກັບ index.html
+     ============================================================ */
+  const SUPABASE_URL = "PUT_YOUR_SUPABASE_URL_HERE";
+  const SUPABASE_ANON_KEY = "PUT_YOUR_SUPABASE_ANON_KEY_HERE";
+
+  const isConfigured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
+  let supa = null;
+  if (isConfigured) supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const HELP_TYPES = {
+    evacuate:{label:"ອົບພະຍົບດ່ວນ",color:"#e63946"}, food:{label:"ອາຫານ/ນ້ຳດື່ມ",color:"#f4a261"},
+    medicine:{label:"ຢາ/ເວຊະພັນ",color:"#2a9d8f"}, other:{label:"ອື່ນໆ",color:"#6c757d"}
+  };
+  const FACILITY_TYPES = {
+    shelter:{label:"🏠 ຈຸດພັກພິງ",color:"#1d6fb8"}, food_dist:{label:"🍚 ຈຸດແຈກອາຫານ",color:"#e67700"},
+    drink_water:{label:"🚰 ຈຸດແຈກນ້ຳດື່ມ",color:"#0aa5c9"}, util_water:{label:"🪣 ຈຸດແຈກນ້ຳໃຊ້",color:"#6a4fb3"},
+    relief_station:{label:"⛑️ ຈຸດປະຈຳການ",color:"#2a9d8f"}
+  };
+
+  let allData = [];
+
+  /* ---------- Login (Supabase Auth ຈິງ) ---------- */
+  const loginView = document.getElementById('loginView');
+  const dashView  = document.getElementById('dashView');
+  const loginBtn  = document.getElementById('loginBtn');
+
+  async function doLogin(){
+    if (!isConfigured){ showToast("ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ Supabase", "err"); return; }
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('pwd').value;
+    if (!email || !password){ showToast("ກະລຸນາໃສ່ Email ແລະ ລະຫັດຜ່ານ", "err"); return; }
+
+    loginBtn.disabled = true; loginBtn.textContent = "⏳ ກຳລັງເຂົ້າ...";
+    const { error } = await supa.auth.signInWithPassword({ email, password });
+    loginBtn.disabled = false; loginBtn.textContent = "ເຂົ້າສູ່ລະບົບ";
+    if (error){
+      console.error(error);
+      showToast("ເຂົ້າສູ່ລະບົບບໍ່ໄດ້: " + (error.message || "ກວດ Email/ລະຫັດຜ່ານ"), "err");
+      return;
+    }
+    // onAuthStateChange ຈະຈັດການສະແດງ dashboard ໃຫ້ເອງ
+  }
+  loginBtn.addEventListener('click', doLogin);
+  document.getElementById('pwd').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+  async function doLogout(){
+    await supa.auth.signOut();
+    // onAuthStateChange ຈະພາກັບໜ້າ login ໃຫ້ເອງ
+  }
+  document.getElementById('logoutBtn').addEventListener('click', doLogout);
+
+  function showLogin(){
+    dashView.style.display = 'none';
+    loginView.style.display = 'block';
+    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('userEmail').textContent = '';
+    document.getElementById('pwd').value = '';
+  }
+
+  function showDash(session){
+    loginView.style.display = 'none';
+    dashView.style.display = 'block';
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+    if (session && session.user) document.getElementById('userEmail').textContent = '👤 ' + session.user.email;
+    if (!isConfigured){ document.getElementById('cfgWarn').style.display = 'block'; return; }
+    loadData();
+  }
+
+  /* ກວດ session + ຕິດຕາມການປ່ຽນສະຖານະ login */
+  if (isConfigured){
+    supa.auth.getSession().then(({ data }) => {
+      if (data && data.session) showDash(data.session); else showLogin();
+    });
+    supa.auth.onAuthStateChange((_event, session) => {
+      if (session) showDash(session); else showLogin();
+    });
+  } else {
+    // ບໍ່ໄດ້ຕັ້ງຄ່າ — ສະແດງ dashboard ພ້ອມຄຳເຕືອນ
+    showDash(null);
+  }
+
+  /* ---------- ໂຫຼດຂໍ້ມູນ ---------- */
+  async function loadData(){
+    if (!isConfigured) return;
+    const { data, error } = await supa.from('requests').select('*').order('created_at',{ascending:false});
+    if (error){ showToast("ໂຫຼດຂໍ້ມູນບໍ່ໄດ້: "+error.message,"err"); console.error(error); return; }
+    allData = data || [];
+    updateStats();
+    renderTable();
+  }
+
+  function updateStats(){
+    const total = allData.length;
+    const req = allData.filter(r => (r.category||'request')==='request');
+    const pending = req.filter(r => r.status!=='helped').length;
+    const helped = req.filter(r => r.status==='helped').length;
+    const fac = allData.filter(r => r.category==='facility').length;
+    document.getElementById('stTotal').textContent = total;
+    document.getElementById('stPending').textContent = pending;
+    document.getElementById('stHelped').textContent = helped;
+    document.getElementById('stFacility').textContent = fac;
+  }
+
+  function typeInfo(r){
+    if (r.category==='facility'){
+      const f = FACILITY_TYPES[r.help_type] || {label:r.help_type,color:'#6c757d'};
+      return { label:f.label, color:f.color };
+    }
+    const t = HELP_TYPES[r.help_type] || HELP_TYPES.other;
+    return { label:t.label, color:t.color };
+  }
+
+  function fmt(iso){
+    if(!iso) return "-";
+    const d=new Date(iso), p=x=>String(x).padStart(2,'0');
+    return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function esc(s){ return String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  /* ---------- ວາດຕາຕະລາງ ---------- */
+  function renderTable(){
+    const cat = document.getElementById('fCat').value;
+    const st  = document.getElementById('fStatus').value;
+    const q   = document.getElementById('fSearch').value.trim().toLowerCase();
+
+    let rows = allData.filter(r => {
+      if (cat!=='all' && (r.category||'request')!==cat) return false;
+      if (st!=='all'){
+        const s = r.status==='helped' ? 'helped' : 'pending';
+        if (s!==st) return false;
+      }
+      if (q){
+        const hay = `${r.name||''} ${r.phone||''} ${r.details||''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const tbody = document.getElementById('tbody');
+    document.getElementById('emptyMsg').style.display = rows.length ? 'none' : 'block';
+    tbody.innerHTML = rows.map(r => {
+      const ti = typeInfo(r);
+      const isFac = r.category==='facility';
+      const helped = r.status==='helped';
+      const phone = r.phone ? `<a href="tel:${esc(r.phone)}">${esc(r.phone)}</a>` : '<span class="muted">-</span>';
+      const people = isFac ? '<span class="muted">-</span>'
+        : `${r.people_count||0}${r.bedridden>0?` <span class="muted">(ຕິດເຕຽງ ${r.bedridden})</span>`:''}`;
+      const statusCell = isFac ? '<span class="muted">-</span>'
+        : `<span class="pill ${helped?'helped':'pending'}">${helped?'ຊ່ວຍແລ້ວ':'ຍັງບໍ່ຊ່ວຍ'}</span>`;
+
+      // ປຸ່ມຈັດການ
+      let toggleBtn = '';
+      if (!isFac){
+        toggleBtn = helped
+          ? `<button class="act undo" onclick="setStatus('${r.id}','pending')">↩ ຄືນ</button>`
+          : `<button class="act done" onclick="setStatus('${r.id}','helped')">✓ ຊ່ວຍແລ້ວ</button>`;
+      }
+      const navBtn = `<a class="act nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}">🗺️</a>`;
+      const delBtn = `<button class="act del" onclick="delRow('${r.id}', this)">🗑️</button>`;
+
+      return `<tr>
+        <td class="muted" style="white-space:nowrap;">${fmt(r.created_at)}</td>
+        <td><span class="badge" style="background:${ti.color}">${esc(ti.label)}</span></td>
+        <td>${esc(r.name||'-')}</td>
+        <td style="white-space:nowrap;">${phone}</td>
+        <td>${people}</td>
+        <td style="max-width:220px;">${esc(r.details||'') || '<span class="muted">-</span>'}</td>
+        <td>${statusCell}</td>
+        <td><div class="actions">${toggleBtn}${navBtn}${delBtn}</div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('fCat').addEventListener('change', renderTable);
+  document.getElementById('fStatus').addEventListener('change', renderTable);
+  document.getElementById('fSearch').addEventListener('input', renderTable);
+  document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+  /* ---------- ອັບເດດສະຖານະ ---------- */
+  window.setStatus = async function(id, status){
+    const { error } = await supa.from('requests').update({ status }).eq('id', id);
+    if (error){ showToast("ອັບເດດບໍ່ໄດ້: "+error.message,"err"); return; }
+    showToast(status==='helped' ? "ໝາຍ 'ຊ່ວຍແລ້ວ' ✓" : "ຄືນເປັນ 'ຍັງບໍ່ຊ່ວຍ' ✓","ok");
+    const row = allData.find(r=>r.id===id); if(row) row.status=status;
+    updateStats(); renderTable();
+  };
+
+  /* ---------- ລົບ ---------- */
+  window.delRow = async function(id, btn){
+    if (!confirm("ຕ້ອງການລົບໝຸດນີ້ແທ້ບໍ່? ການລົບຈະກູ້ຄືນບໍ່ໄດ້.")) return;
+    if (btn) btn.disabled = true;
+    const { error } = await supa.from('requests').delete().eq('id', id);
+    if (error){ showToast("ລົບບໍ່ໄດ້: "+error.message+" (ກວດ policy DELETE ໃນ Supabase)","err"); if(btn) btn.disabled=false; return; }
+    showToast("ລົບແລ້ວ ✓","ok");
+    allData = allData.filter(r=>r.id!==id);
+    updateStats(); renderTable();
+  };
+
+  /* ---------- Toast ---------- */
+  let tt;
+  function showToast(msg,type=""){
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.className="toast show "+type;
+    clearTimeout(tt); tt=setTimeout(()=>t.className="toast "+type,3200);
+  }
+  </script>
+</body>
+</html>
