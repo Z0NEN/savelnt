@@ -605,13 +605,13 @@
       return;
     }
 
-    // ອັບໂຫຼດຮູບ (ຖ້າມີ) ຂຶ້ນ Supabase Storage bucket 'photos'
+    // ອັບໂຫຼດຮູບ (ຖ້າມີ) ຂຶ້ນ Supabase Storage bucket 'photos' — ບີບອັດກ່ອນອັບ
     const photoFile = document.getElementById('photo').files[0];
     if (photoFile) {
       btn.textContent = "⏳ ກຳລັງອັບຮູບ...";
-      const ext = (photoFile.name.split('.').pop() || 'jpg').toLowerCase();
-      const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
-      const up = await supa.storage.from('photos').upload(path, photoFile, { cacheControl:'3600', upsert:false });
+      const blob = await compressImage(photoFile);   // ຫຍໍ້ຮູບໃຫ້ນ້ອຍ
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+      const up = await supa.storage.from('photos').upload(path, blob, { cacheControl:'3600', upsert:false, contentType:'image/jpeg' });
       if (up.error) {
         console.error(up.error);
         showToast("ອັບຮູບບໍ່ໄດ້: " + up.error.message + " (ຈະບັນທຶກໂດຍບໍ່ມີຮູບ)", "err");
@@ -663,6 +663,27 @@
     document.getElementById('photo').value = '';
     document.getElementById('photoPreview').style.display = 'none';
   });
+
+  /* ບີບອັດ/ຫຍໍ້ຮູບ ຢູ່ browser ກ່ອນອັບ (ປະຢັດພື້ນທີ່ + ອັບໄວ) */
+  async function compressImage(file, maxDim = 1600, quality = 0.7){
+    try{
+      const bitmap = await createImageBitmap(file);
+      let w = bitmap.width, h = bitmap.height;
+      if (Math.max(w, h) > maxDim){
+        const s = maxDim / Math.max(w, h);
+        w = Math.round(w * s); h = Math.round(h * s);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+      // ຖ້າຫຍໍ້ແລ້ວໃຫຍ່ກວ່າຕົ້ນສະບັບ ໃຫ້ໃຊ້ຕົ້ນສະບັບ
+      return (blob && blob.size < file.size) ? blob : (blob || file);
+    } catch(e){
+      console.warn('compressImage failed, use original:', e);
+      return file;
+    }
+  }
 
   /* ============================================================
      7) ໂຫຼດຂໍ້ມູນ (SELECT) ຈາກ Supabase ແລ້ວປັກໝຸດ
