@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>ແຈ້ງເຫດຂໍຄວາມຊ່ວຍເຫຼືອ - ໄພນ້ຳຖ້ວມ</title>
 
-  <!-- ຟ້ອນ Noto Sans Lao -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Leaflet (OpenStreetMap) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -185,22 +182,23 @@
       100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}
     }
 
-    /* Filter bar (chips) */
+    /* Filter bar (chips) — ປັບໃຫ້ສະແດງ 2 ແຖວ ແລະ ເລື່ອນໄດ້ຖ້າຂໍ້ມູນລົ້ນ */
     .filterbar{
       position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1001;
-      display:flex;gap:7px;max-width:94vw;overflow-x:auto;padding:6px;background:rgba(255,255,255,.92);
-      border-radius:40px;box-shadow:var(--shadow);backdrop-filter:blur(4px);-webkit-overflow-scrolling:touch;
+      display:flex;flex-wrap:wrap;justify-content:center;gap:6px;
+      max-width:96vw;width:max-content;max-height:86px;overflow-y:auto;
+      padding:6px 10px;background:rgba(255,255,255,.92);
+      border-radius:18px;box-shadow:var(--shadow);backdrop-filter:blur(4px);-webkit-overflow-scrolling:touch;
     }
     .filterbar::-webkit-scrollbar{display:none;}
     .chip{
-      flex:0 0 auto;padding:7px 13px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
-      font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
+      flex:0 0 auto;padding:6px 12px;border:none;border-radius:20px;background:#eef1f4;color:#5b6572;
+      font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
     }
     .chip.active{background:#1d6fb8;color:#fff;}
-    /* ໃນຈໍໂທລະສັບ: ຕັດເປັນຫຼາຍແຖວ (ບໍ່ຕ້ອງເລື່ອນ) */
     @media (max-width:640px){
-      .filterbar{flex-wrap:wrap;justify-content:center;overflow-x:visible;border-radius:16px;max-width:96vw;padding:7px 8px;}
-      .chip{font-size:12px;padding:6px 11px;}
+      .filterbar{padding:5px 6px;gap:5px;}
+      .chip{font-size:11.5px;padding:5px 9px;}
     }
 
     .config-warn{
@@ -236,7 +234,6 @@
   <div class="layout">
     <div id="map"></div>
 
-    <!-- Filter bar (chips) -->
     <div class="filterbar" id="filterbar">
       <button class="chip active" data-f="all">ທັງໝົດ</button>
       <button class="chip" data-f="request">🆘 ຄຳຮ້ອງ</button>
@@ -250,7 +247,6 @@
       <button class="chip" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
     </div>
 
-    <!-- Legend (desktop) -->
     <div class="legend-float">
       <div class="legend">
         <div style="font-weight:700;margin-bottom:4px;">🆘 ຄຳຮ້ອງຂໍຊ່ວຍເຫຼືອ</div>
@@ -259,16 +255,15 @@
         <div><span class="dot" style="background:var(--green)"></span> ຢາ / ເວຊະພັນ</div>
         <div><span class="dot" style="background:var(--gray)"></span> ອື່ນໆ</div>
         <div style="font-weight:700;margin:6px 0 4px;">📍 ຈຸດບໍລິການ</div>
-        <div>🏠 ພັກພິງ &nbsp; 🍚 ອາຫານ</div>
-        <div>🚰 ນ້ຳດື່ມ &nbsp; 💧 ນ້ຳໃຊ້</div>
+        <div>🏠 ພັກພິງ   🍚 ອາຫານ</div>
+        <div>🚰 ນ້ຳດື່ມ   💧 ນ້ຳໃຊ້</div>
         <div>⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</div>
         <div style="font-weight:700;margin:6px 0 4px;">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</div>
-        <div>🚧 ທາງໄປບໍ່ໄດ້ &nbsp; 🌊 ນ້ຳສູງ</div>
+        <div>🚧 ທາງໄປບໍ່ໄດ້   🌊 ນ້ຳສູງ</div>
         <div>⛰️ ດິນເຈື່ອນ</div>
       </div>
     </div>
 
-    <!-- Floating buttons -->
     <div class="fab-wrap">
       <button class="fab gps" id="locateBtn" title="ໄປຫາຕຳແໜ່ງຂອງຂ້ອຍ" aria-label="GPS">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1d6fb8" stroke-width="2.2" stroke-linecap="round">
@@ -281,7 +276,6 @@
       <button class="fab add" id="openFormBtn">➕ ແຈ້ງເຫດ</button>
     </div>
 
-    <!-- Form panel -->
     <aside class="panel" id="panel">
       <div class="grabber"></div>
       <button class="close-x" id="closeBtn">×</button>
@@ -301,7 +295,6 @@
             <button type="button" class="seg-btn" data-cat="hazard">🚧 ອັນຕະລາຍ</button>
           </div>
 
-          <!-- ປະເພດຄຳຮ້ອງ (ໂໝດຂໍຄວາມຊ່ວຍເຫຼືອ) -->
           <div id="reqTypeWrap">
             <label>ປະເພດຄວາມຊ່ວຍເຫຼືອ *</label>
             <select id="helpType">
@@ -312,7 +305,6 @@
             </select>
           </div>
 
-          <!-- ປະເພດຈຸດບໍລິການ (ໂໝດຈຸດບໍລິການ) -->
           <div id="facTypeWrap" style="display:none;">
             <label>ປະເພດຈຸດບໍລິການ *</label>
             <select id="facType">
@@ -324,7 +316,6 @@
             </select>
           </div>
 
-          <!-- ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ (ໂໝດອັນຕະລາຍ) -->
           <div id="hazTypeWrap" style="display:none;">
             <label>ປະເພດອັນຕະລາຍ / ເສັ້ນທາງ *</label>
             <select id="hazType">
@@ -368,7 +359,6 @@
     </aside>
   </div>
 
-  <!-- Edit modal (ສະເພาະ admin) -->
   <div id="editModal" class="modal-backdrop" style="display:none;">
     <div class="modal">
       <h3>✏️ ແກ້ໄຂຂໍ້ມູນຈຸດ</h3>
@@ -451,16 +441,16 @@
 
   // ຮູບແບບແຜນທີ່ (ຟຣີ ບໍ່ຕ້ອງ API key)
   const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; OpenStreetMap'
+    maxZoom: 19, attribution: '© OpenStreetMap'
   });
   const baseHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; OpenStreetMap France, HOT'
+    maxZoom: 19, attribution: '© OpenStreetMap France, HOT'
   });
   const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19, maxNativeZoom: 17, attribution: '&copy; Esri World Imagery'
+    maxZoom: 19, maxNativeZoom: 17, attribution: '© Esri World Imagery'
   });
   const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19, maxNativeZoom: 17, attribution: '&copy; Esri'
+    maxZoom: 19, maxNativeZoom: 17, attribution: '© Esri'
   });
   // ດາວທຽມ + ປ້າຍຊື່ (hybrid) ເປັນກຸ່ມດຽວ
   const satHybrid = L.layerGroup([esriSat, esriLabels]);
@@ -1065,7 +1055,7 @@
 
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, m => (
-      {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]
+      {'&':'&','<':'<','>':'>','"':'"',"'":'''}[m]
     ));
   }
 
