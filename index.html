@@ -143,7 +143,7 @@
     .popup-row{font-size:12.5px;margin:2px 0;color:#333;}
     .popup-row b{color:#111;}
     .popup-time{font-size:11px;color:var(--muted);margin-top:6px;}
-    .leaflet-popup-content{margin:12px 14px;min-width:190px;max-height:60vh;overflow-y:auto;}
+    .leaflet-popup-content{margin:12px 14px;min-width:190px;}
     .popup-btn{
       display:block;width:100%;margin-top:9px;padding:9px;border:none;border-radius:9px;
       background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
@@ -197,11 +197,6 @@
       font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
     }
     .chip.active{background:#1d6fb8;color:#fff;}
-    /* ໃນຈໍໂທລະສັບ: ຕັດເປັນຫຼາຍແຖວ (ບໍ່ຕ້ອງເລື່ອນ) */
-    @media (max-width:640px){
-      .filterbar{flex-wrap:wrap;justify-content:center;overflow-x:visible;border-radius:16px;max-width:96vw;padding:7px 8px;}
-      .chip{font-size:12px;padding:6px 11px;}
-    }
 
     .config-warn{
       background:#fff3cd;border:1px solid #ffe08a;color:#8a6d00;font-size:12px;
@@ -250,6 +245,23 @@
       <button class="chip" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
     </div>
 
+    <!-- Legend (desktop) -->
+    <div class="legend-float">
+      <div class="legend">
+        <div style="font-weight:700;margin-bottom:4px;">🆘 ຄຳຮ້ອງຂໍຊ່ວຍເຫຼືອ</div>
+        <div><span class="dot" style="background:var(--red)"></span> ອົບພະຍົບດ່ວນ</div>
+        <div><span class="dot" style="background:var(--orange)"></span> ອາຫານ / ນ້ຳດື່ມ</div>
+        <div><span class="dot" style="background:var(--green)"></span> ຢາ / ເວຊະພັນ</div>
+        <div><span class="dot" style="background:var(--gray)"></span> ອື່ນໆ</div>
+        <div style="font-weight:700;margin:6px 0 4px;">📍 ຈຸດບໍລິການ</div>
+        <div>🏠 ພັກພິງ &nbsp; 🍚 ອາຫານ</div>
+        <div>🚰 ນ້ຳດື່ມ &nbsp; 💧 ນ້ຳໃຊ້</div>
+        <div>⛑️ ຈຸດປະຈຳການຊ່ວຍເຫຼືອ</div>
+        <div style="font-weight:700;margin:6px 0 4px;">🚧 ອັນຕະລາຍ / ເສັ້ນທາງ</div>
+        <div>🚧 ທາງໄປບໍ່ໄດ້ &nbsp; 🌊 ນ້ຳສູງ</div>
+        <div>⛰️ ດິນເຈື່ອນ</div>
+      </div>
+    </div>
 
     <!-- Floating buttons -->
     <div class="fab-wrap">
