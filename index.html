@@ -143,7 +143,7 @@
     .popup-row{font-size:12.5px;margin:2px 0;color:#333;}
     .popup-row b{color:#111;}
     .popup-time{font-size:11px;color:var(--muted);margin-top:6px;}
-    .leaflet-popup-content{margin:12px 14px;min-width:190px;}
+    .leaflet-popup-content{margin:12px 14px;min-width:190px;max-height:60vh;overflow-y:auto;}
     .popup-btn{
       display:block;width:100%;margin-top:9px;padding:9px;border:none;border-radius:9px;
       background:var(--green);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
@@ -185,13 +185,22 @@
       100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}
     }
 
-    /* Filter bar (chips) */
-    .filterbar{
+    /* Filter — ປຸ່ມພັບໄດ້ (ບໍ່ບັງແຜນທີ່) */
+    .filter-wrap{
       position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:1001;
-      display:flex;gap:7px;max-width:94vw;overflow-x:auto;padding:6px;background:rgba(255,255,255,.92);
-      border-radius:40px;box-shadow:var(--shadow);backdrop-filter:blur(4px);-webkit-overflow-scrolling:touch;
+      display:flex;flex-direction:column;align-items:center;gap:6px;max-width:96vw;
     }
-    .filterbar::-webkit-scrollbar{display:none;}
+    .filter-toggle{
+      background:rgba(255,255,255,.95);border:none;border-radius:30px;padding:9px 18px;
+      font-family:inherit;font-size:13.5px;font-weight:700;color:var(--text);
+      box-shadow:var(--shadow);cursor:pointer;white-space:nowrap;backdrop-filter:blur(4px);
+    }
+    .filterbar{
+      display:none;gap:7px;flex-wrap:wrap;justify-content:center;padding:8px;
+      background:rgba(255,255,255,.97);border-radius:16px;box-shadow:var(--shadow);
+      backdrop-filter:blur(4px);max-width:96vw;
+    }
+    .filterbar.open{display:flex;}
     .chip{
       flex:0 0 auto;padding:7px 13px;border:none;border-radius:30px;background:#eef1f4;color:#5b6572;
       font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s;
@@ -215,6 +224,12 @@
     .modal-actions button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
     .modal-actions .cancel{background:#e9ecef;color:#333;}
     .modal-actions .save{background:var(--green);color:#fff;}
+
+    /* Lightbox (ເປີດຮູບເປັນ popup) */
+    .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:5000;display:none;align-items:center;justify-content:center;padding:12px;}
+    .lightbox.open{display:flex;}
+    .lightbox img{max-width:100%;max-height:92vh;border-radius:8px;box-shadow:0 6px 30px rgba(0,0,0,.5);}
+    .lightbox .lb-close{position:absolute;top:12px;right:16px;color:#fff;font-size:36px;line-height:1;background:none;border:none;cursor:pointer;}
   </style>
 </head>
 <body>
@@ -231,8 +246,10 @@
   <div class="layout">
     <div id="map"></div>
 
-    <!-- Filter bar (chips) -->
-    <div class="filterbar" id="filterbar">
+    <!-- Filter — ພັບໄດ້ -->
+    <div class="filter-wrap" id="filterWrap">
+      <button class="filter-toggle" id="filterToggle">🔎 <span id="filterLabel">ທັງໝົດ</span> ▾</button>
+      <div class="filterbar" id="filterbar">
       <button class="chip active" data-f="all">ທັງໝົດ</button>
       <button class="chip" data-f="request">🆘 ຄຳຮ້ອງ</button>
       <button class="chip" data-f="shelter">🏠 ພັກພິງ</button>
@@ -243,6 +260,7 @@
       <button class="chip" data-f="road_blocked">🚧 ທາງປິດ</button>
       <button class="chip" data-f="flood_high">🌊 ນ້ຳສູງ</button>
       <button class="chip" data-f="landslide">⛰️ ດິນເຈື່ອນ</button>
+      </div>
     </div>
 
     <!-- Legend (desktop) -->
@@ -389,6 +407,12 @@
         <button class="save" id="eSave">💾 ບັນທຶກ</button>
       </div>
     </div>
+  </div>
+
+  <!-- Lightbox (ເປີດຮູບເປັນ popup) -->
+  <div class="lightbox" id="lightbox">
+    <button class="lb-close" aria-label="close">×</button>
+    <img id="lightboxImg" src="" alt="" />
   </div>
 
   <div class="toast" id="toast"></div>
@@ -858,14 +882,24 @@
     if (!urls.length) return "";
     if (urls.length === 1){
       const u = encodeURI(urls[0]);
-      return `<a href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="ຮູບ"
-        style="width:100%;border-radius:8px;margin-top:8px;max-height:150px;object-fit:cover;display:block;" /></a>`;
+      return `<img src="${u}" alt="ຮູບ" onclick="openLightbox('${u}')"
+        style="width:100%;border-radius:8px;margin-top:8px;max-height:150px;object-fit:cover;display:block;cursor:pointer;" />`;
     }
     return `<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">` +
-      urls.map(u => { const e = encodeURI(u); return `<a href="${e}" target="_blank" rel="noopener"><img src="${e}"
-        style="width:76px;height:76px;object-fit:cover;border-radius:6px;display:block;" /></a>`; }).join('') +
+      urls.map(u => { const e = encodeURI(u); return `<img src="${e}" onclick="openLightbox('${e}')"
+        style="width:76px;height:76px;object-fit:cover;border-radius:6px;display:block;cursor:pointer;" />`; }).join('') +
       `</div>`;
   }
+
+  /* ເປີດຮູບເປັນ popup (lightbox) */
+  window.openLightbox = function(url){
+    document.getElementById('lightboxImg').src = url;
+    document.getElementById('lightbox').classList.add('open');
+  };
+  document.getElementById('lightbox').addEventListener('click', () => {
+    document.getElementById('lightbox').classList.remove('open');
+    document.getElementById('lightboxImg').src = '';
+  });
 
   /* ໝຸດ "ຈຸດບໍລິການ" (ຮູບສີ່ຫຼ່ຽມ + emoji) */
   function addFacilityMarker(r){
@@ -953,11 +987,18 @@
 
   /* ===== ແກ້ໄຂ / ລົບ (ສະເພາະ admin ທີ່ login) ===== */
   function adminButtons(r){
-    if (!isAdmin || !r.id) return '';
-    return `<div style="display:flex;gap:6px;margin-top:8px;">
-      <button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>
-      <button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>
-    </div>`;
+    if (!r.id) return '';
+    const cat = r.category || 'request';
+    let btns = '';
+    // ແກ້ໄຂ: ຈຸດບໍລິການ/ອັນຕະລາຍ = ທຸກຄົນ; ຄຳຮ້ອງ SOS = admin ເທົ່ານັ້ນ
+    if (cat !== 'request' || isAdmin) {
+      btns += `<button class="popup-btn" style="flex:1;margin-top:0;background:#f0932b;" onclick="editPoint('${r.id}')">✏️ ແກ້ໄຂ</button>`;
+    }
+    // ລົບ: admin ເທົ່ານັ້ນ
+    if (isAdmin) {
+      btns += `<button class="popup-btn" style="flex:1;margin-top:0;background:#e63946;" onclick="deletePoint('${r.id}')">🗑️ ລົບ</button>`;
+    }
+    return btns ? `<div style="display:flex;gap:6px;margin-top:8px;">${btns}</div>` : '';
   }
   const _editModal = document.getElementById('editModal');
   function _typeOptions(cat, selected){
@@ -1000,7 +1041,7 @@
     const b = document.getElementById('eSave'); b.disabled = true; b.textContent = '⏳ ກຳລັງບັນທຶກ...';
     const { error } = await supa.from('requests').update(patch).eq('id', id);
     b.disabled = false; b.textContent = '💾 ບັນທຶກ';
-    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message + " (ຕ້ອງ login admin)", "err"); return; }
+    if (error){ console.error(error); showToast("ບັນທຶກບໍ່ໄດ້: " + error.message, "err"); return; }
     showToast("ບັນທຶກແລ້ວ ✓", "ok");
     _editModal.style.display = 'none';
     loadRequests();
@@ -1076,17 +1117,29 @@
   /* ============================================================
      9) Filter chips — ກົດ = ເລືອກສະແດງສະເພາະປະເພດນັ້ນ (single-select)
      ============================================================ */
+  const filterbar = document.getElementById('filterbar');
   function syncChips(){
     document.querySelectorAll('.filterbar .chip').forEach(chip => {
       chip.classList.toggle('active', chip.dataset.f === activeFilter);
     });
   }
+  // ປຸ່ມ toggle — ກາງອອກ/ພັບເກັບ
+  document.getElementById('filterToggle').addEventListener('click', (e) => {
+    e.stopPropagation();
+    filterbar.classList.toggle('open');
+  });
   document.querySelectorAll('.filterbar .chip').forEach(chip => {
     chip.addEventListener('click', () => {
       activeFilter = chip.dataset.f;   // ເລືອກປະເພດທີ່ກົດ ('all' = ໝົດ)
+      document.getElementById('filterLabel').textContent = chip.textContent.trim();
       syncChips();
       renderMarkers();
+      filterbar.classList.remove('open');   // ພັບເກັບຫຼັງເລືອກ
     });
+  });
+  // ກົດບ່ອນອື່ນ = ພັບເກັບ
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('filterWrap').contains(e.target)) filterbar.classList.remove('open');
   });
   syncChips();
 
